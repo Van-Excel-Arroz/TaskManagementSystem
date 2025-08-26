@@ -8,14 +8,17 @@ namespace TaskManagementSystem
     {
         private static readonly ITaskService _taskService;
         private static User? _currentUser;
+        private static bool _isProgramRunning = true;
         private static bool _isAuthMenuRunning = true;
         private static bool _isMainMenuRunning = false;
+        private static bool _isTodoListMenuRunning = false;
 
         static Program()
         {
             var userRepository = new GenericRepository<User>();
+            var todolistRepository = new GenericRepository<TodoList>();
 
-            _taskService = new TaskService(userRepository);
+            _taskService = new TaskService(userRepository, todolistRepository);
         }
 
 
@@ -23,38 +26,49 @@ namespace TaskManagementSystem
         {
             Console.WriteLine("Task Management System\n");
 
-            while (_isAuthMenuRunning)
+            while (_isProgramRunning)
             {
-                Console.WriteLine("[1] Sign Up\n[2] Log In\n[3] Exit\n[4] See all users");
-                Console.Write("Enter: ");
-                string choice = Console.ReadLine() ?? string.Empty;
 
-                switch (choice)
+                while (_isAuthMenuRunning)
                 {
-                    case "1": SignUp(); break;
-                    case "2": Login(); break;
-                    case "3": _isAuthMenuRunning = false; break;
-                    case "4": PrintAllUsers(); break;
-                    default: Console.WriteLine("Invalid Option, please try again."); break;
+                    Console.WriteLine("[1] Sign Up\n[2] Log In\n[3] Exit\n[4] See all users");
+                    Console.Write("\nEnter: ");
+                    string choice = Console.ReadLine() ?? string.Empty;
+
+                    switch (choice)
+                    {
+                        case "1": SignUp(); break;
+                        case "2": Login(); break;
+                        case "3": _isAuthMenuRunning = false; break;
+                        case "4": PrintAllUsers(); break;
+                        default: Console.WriteLine("Invalid Option, please try again."); break;
+                    }
+                    Console.WriteLine("\nPress any key to continue...");
+                    Console.ReadKey();
+                    Console.Clear();
                 }
-                Console.WriteLine("\nPress any key to continue...");
-                Console.ReadKey();
-                Console.Clear();
-            }
 
-            while (_isMainMenuRunning)
-            {
-                DisplayMainMenu();
-                string choice = Console.ReadLine() ?? string.Empty;
-
-                switch (choice)
+                while (_isMainMenuRunning)
                 {
-                    case "2": _isMainMenuRunning = false; break;
-                    default: Console.WriteLine("Invalid Option, please try again."); break;
+                    DisplayMainMenu();
+                    string choice = Console.ReadLine() ?? string.Empty;
+
+                    switch (choice)
+                    {
+                        case "1": AddTodoList(); break;
+                        case "2": PrintAllTodoLists(); break;
+                        case "3":
+                            {
+                                _isMainMenuRunning = false;
+                                _isAuthMenuRunning = true;
+                                break;
+                            }
+                        default: Console.WriteLine("Invalid Option, please try again."); break;
+                    }
+                    Console.WriteLine("\nPress any key to continue...");
+                    Console.ReadKey();
+                    Console.Clear();
                 }
-                Console.WriteLine("\nPress any key to continue...");
-                Console.ReadKey();
-                Console.Clear();
             }
 
         }
@@ -72,6 +86,37 @@ namespace TaskManagementSystem
                 {
                     _taskService.PrintUserDetails(user);
                 }
+            }
+        }
+
+        private static void PrintAllTodoLists()
+        {
+            var todolists = _taskService.GetAllTodoLists();
+            if (!todolists.Any())
+            {
+                Console.WriteLine("\nNo todolists in memory.");
+            }
+            else
+            {
+                foreach (var todolist in todolists)
+                {
+                    Console.WriteLine($"[{todolist.Id}] {todolist.Title}");
+                }
+
+                try
+                {
+                    Console.Write("\nSelect a todolist: ");
+                    string choice = Console.ReadLine() ?? string.Empty;
+                    int todoListId = int.Parse(choice);
+                    _taskService.GetTodoListById(todoListId);
+                }
+                catch (FormatException ex)
+                {
+                    Console.WriteLine("Invalid input, please try again.", ex);
+                }
+
+
+
             }
         }
 
@@ -111,9 +156,25 @@ namespace TaskManagementSystem
 
         private static void DisplayMainMenu()
         {
-            Console.WriteLine("[1] Create A todolist");
-            Console.WriteLine("[2] Exit");
-            Console.Write("Enter:");
+            Console.WriteLine("[1] Create a todolist");
+            Console.WriteLine("[2] Display all todolists");
+            Console.WriteLine("[3] Logout");
+            Console.Write("\nEnter:");
+        }
+
+        private static void AddTodoList()
+        {
+            if (_currentUser == null)
+            {
+                Console.WriteLine("User must be authenticated.");
+                return;
+            }
+
+            Console.WriteLine("\n=== Create a TodoList ===");
+            Console.Write("Title: ");
+            string title = Console.ReadLine() ?? string.Empty;
+            _taskService.CreateTodoList(title, _currentUser.Id);
+            Console.WriteLine($"\nSuccessfully created a todolist \"{title}\".");
         }
     }
 }
