@@ -8,6 +8,7 @@ namespace TaskManagementSystem
     {
         private static readonly ITaskService _taskService;
         private static User? _currentUser;
+        private static TodoList? _currentSelectedTodoList;
         private static bool _isProgramRunning = true;
         private static bool _isAuthMenuRunning = true;
         private static bool _isMainMenuRunning = false;
@@ -31,11 +32,10 @@ namespace TaskManagementSystem
 
                 while (_isAuthMenuRunning)
                 {
-                    Console.WriteLine("[1] Sign Up\n[2] Log In\n[3] Exit\n[4] See all users");
-                    Console.Write("\nEnter: ");
-                    string choice = Console.ReadLine() ?? string.Empty;
+                    DisplayAuthMenu();
+                    string authMenuChoice = Console.ReadLine() ?? string.Empty;
 
-                    switch (choice)
+                    switch (authMenuChoice)
                     {
                         case "1": SignUp(); break;
                         case "2": Login(); break;
@@ -43,17 +43,15 @@ namespace TaskManagementSystem
                         case "4": PrintAllUsers(); break;
                         default: Console.WriteLine("Invalid Option, please try again."); break;
                     }
-                    Console.WriteLine("\nPress any key to continue...");
-                    Console.ReadKey();
-                    Console.Clear();
+                    PauseAndClearConsole();
                 }
 
                 while (_isMainMenuRunning)
                 {
                     DisplayMainMenu();
-                    string choice = Console.ReadLine() ?? string.Empty;
+                    string mainMenuChoice = Console.ReadLine() ?? string.Empty;
 
-                    switch (choice)
+                    switch (mainMenuChoice)
                     {
                         case "1": AddTodoList(); break;
                         case "2": PrintAllTodoLists(); break;
@@ -65,9 +63,22 @@ namespace TaskManagementSystem
                             }
                         default: Console.WriteLine("Invalid Option, please try again."); break;
                     }
-                    Console.WriteLine("\nPress any key to continue...");
-                    Console.ReadKey();
-                    Console.Clear();
+                    PauseAndClearConsole();
+
+
+                    // this would run if a todolist is selected in PrintAllTodoLists() function
+                    while (_isTodoListMenuRunning)
+                    {
+                        DisplayTodoListMenu();
+                        string todoListMenuChoice = Console.ReadLine() ?? string.Empty;
+
+                        switch (todoListMenuChoice)
+                        {
+                            case "5": _isTodoListMenuRunning = false; break;
+                        }
+                        PauseAndClearConsole();
+                    }
+
                 }
             }
 
@@ -108,7 +119,7 @@ namespace TaskManagementSystem
                     Console.Write("\nSelect a todolist: ");
                     string choice = Console.ReadLine() ?? string.Empty;
                     int todoListId = int.Parse(choice);
-                    _taskService.GetTodoListById(todoListId);
+                    _isTodoListMenuRunning = true;
                 }
                 catch (FormatException ex)
                 {
@@ -154,12 +165,39 @@ namespace TaskManagementSystem
             }
         }
 
+        private static void PauseAndClearConsole()
+        {
+            Console.WriteLine("\nPress any key to continue...");
+            Console.ReadKey();
+            Console.Clear();
+        }
+
         private static void DisplayMainMenu()
         {
-            Console.WriteLine("[1] Create a todolist");
-            Console.WriteLine("[2] Display all todolists");
+            Console.WriteLine("[1] Create a todo list");
+            Console.WriteLine("[2] Display all todo lists");
             Console.WriteLine("[3] Logout");
-            Console.Write("\nEnter:");
+            Console.Write("\nEnter: ");
+        }
+
+        private static void DisplayAuthMenu()
+        {
+            Console.WriteLine("[1] Sign Up");
+            Console.WriteLine("[2] Log In");
+            Console.WriteLine("[3] Exit");
+            Console.WriteLine("[4] See all users");
+            Console.Write("\nEnter: ");
+        }
+
+        private static void DisplayTodoListMenu()
+        {
+            Console.WriteLine($"=== Todo List \"{_currentSelectedTodoList?.Title}\"===\n");
+            Console.WriteLine("[1] Create a todo");
+            Console.WriteLine("[2] Delete todo\\s");
+            Console.WriteLine("[3] Rename");
+            Console.WriteLine("[4] Delete");
+            Console.WriteLine("[5] Back");
+            Console.Write("\nEnter: ");
         }
 
         private static void AddTodoList()
