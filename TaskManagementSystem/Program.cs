@@ -74,7 +74,12 @@ namespace TaskManagementSystem
 
                         switch (todoListMenuChoice)
                         {
-                            case "5": _isTodoListMenuRunning = false; break;
+                            case "5":
+                                {
+                                    _isTodoListMenuRunning = false;
+                                    _currentSelectedTodoList = null;
+                                    break;
+                                }
                         }
                         PauseAndClearConsole();
                     }
@@ -119,6 +124,7 @@ namespace TaskManagementSystem
                     Console.Write("\nSelect a todolist: ");
                     string choice = Console.ReadLine() ?? string.Empty;
                     int todoListId = int.Parse(choice);
+                    _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
                     _isTodoListMenuRunning = true;
                 }
                 catch (FormatException ex)
@@ -191,7 +197,7 @@ namespace TaskManagementSystem
 
         private static void DisplayTodoListMenu()
         {
-            Console.WriteLine($"=== Todo List \"{_currentSelectedTodoList?.Title}\"===\n");
+            Console.WriteLine($"=== Todo List \"{_currentSelectedTodoList?.Title}\" ===\n");
             Console.WriteLine("[1] Create a todo");
             Console.WriteLine("[2] Delete todo\\s");
             Console.WriteLine("[3] Rename");
