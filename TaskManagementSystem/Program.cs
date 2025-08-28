@@ -26,7 +26,7 @@ namespace TaskManagementSystem
 
         static void Main(string[] args)
         {
-
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Task Management System\n");
 
             while (_isProgramRunning)
@@ -43,7 +43,7 @@ namespace TaskManagementSystem
                         case "2": Login(); break;
                         case "3": _isAuthMenuRunning = false; break;
                         case "4": PrintAllUsers(); break;
-                        default: Console.WriteLine("Invalid Option, please try again."); break;
+                        default: PrintErrorMessage(); break;
                     }
                     PauseAndClearConsole();
                 }
@@ -63,7 +63,7 @@ namespace TaskManagementSystem
                                 _isAuthMenuRunning = true;
                                 break;
                             }
-                        default: Console.WriteLine("Invalid Option, please try again."); break;
+                        default: PrintErrorMessage(); break;
                     }
                     PauseAndClearConsole();
 
@@ -154,7 +154,7 @@ namespace TaskManagementSystem
             }
             else
             {
-                Console.WriteLine("Incorrect username or password. Please try again.");
+                PrintErrorMessage("Incorrect username or password. Please try again.");
             }
         }
 
@@ -190,6 +190,20 @@ namespace TaskManagementSystem
             Console.WriteLine("[5] Back");
         }
 
+        private static void AddTodoList()
+        {
+            if (_currentUser == null)
+            {
+                Console.WriteLine("User must be authenticated.");
+                return;
+            }
+
+            Console.WriteLine("\n=== Create a TodoList ===");
+            string title = GetStringInput("Title: ", isRequired: true);
+            _taskService.CreateTodoList(title, _currentUser.Id);
+            Console.WriteLine($"\nSuccessfully created a todolist \"{title}\".");
+        }
+
         private static string GetStringInput(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
         {
             bool isInputPending = true;
@@ -201,22 +215,21 @@ namespace TaskManagementSystem
 
                 if (isRequired && userInput.Length == 0)
                 {
-                    Console.WriteLine("You can't leave this field empty");
+                    PrintErrorMessage("You can't leave this field empty.");
                     continue;
                 }
 
                 if (isDateTime && !DateTime.TryParse(userInput, out DateTime validDate))
                 {
-                    Console.WriteLine("Invalid date format, please try again.");
+                    PrintErrorMessage("Invalid date format, please try again.");
                     continue;
                 }
 
                 if (isPriorityLevel && !Enum.TryParse(userInput, out PriorityLevel priority))
                 {
-                    Console.WriteLine("Invalid input, please select the exact priority.");
+                    PrintErrorMessage("Invalid input, please select the exact priority.");
                     continue;
                 }
-
                 isInputPending = false;
                 return userInput;
 
@@ -232,31 +245,25 @@ namespace TaskManagementSystem
             {
                 try
                 {
-                    Console.Write($"{prompt}: ");
+                    Console.Write($"{prompt}");
                     string userInput = Console.ReadLine() ?? string.Empty;
                     int parseInput = int.Parse(userInput);
                     return parseInput;
                 }
                 catch (FormatException ex)
                 {
-                    Console.WriteLine("Invalid input, please try again.", ex.Message);
+                    PrintErrorMessage($"Invalid input, please try again. {ex.Message}");
+
                 }
             }
             return -1;
         }
 
-        private static void AddTodoList()
+        private static void PrintErrorMessage(string message = "Invalid option, please try again.")
         {
-            if (_currentUser == null)
-            {
-                Console.WriteLine("User must be authenticated.");
-                return;
-            }
-
-            Console.WriteLine("\n=== Create a TodoList ===");
-            string title = GetStringInput("Title: ");
-            _taskService.CreateTodoList(title, _currentUser.Id);
-            Console.WriteLine($"\nSuccessfully created a todolist \"{title}\".");
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+            Console.ForegroundColor = ConsoleColor.White;
         }
     }
 }
