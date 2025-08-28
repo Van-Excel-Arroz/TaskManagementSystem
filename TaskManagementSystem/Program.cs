@@ -1,4 +1,5 @@
-﻿using TaskManagementSystem.Data;
+﻿using System.Globalization;
+using TaskManagementSystem.Data;
 using TaskManagementSystem.Models;
 using TaskManagementSystem.Service;
 
@@ -10,10 +11,10 @@ namespace TaskManagementSystem
         private static User? _currentUser;
         private static TodoList? _currentSelectedTodoList;
         private static bool _isProgramRunning = true;
-        private static bool _isAuthMenuRunning = true;
-        private static bool _isMainMenuRunning = false;
+        private static bool _isAuthMenuRunning = false;
+        private static bool _isMainMenuRunning = true;
         private static bool _isTodoListMenuRunning = false;
-        private static string _dueDateFormat = "yyyy-MM-dd HH:mm aa";
+        private static string _dueDateFormat = "yyyy-MM-dd hh:mm tt";
 
         static Program()
         {
@@ -22,6 +23,11 @@ namespace TaskManagementSystem
             var todoItemRepository = new GenericRepository<TodoItem>();
 
             _taskService = new TaskService(userRepository, todolistRepository, todoItemRepository);
+            var tempUser = new User { Username = "van", Password = "lol" };
+            _taskService.CreateUser(tempUser);
+            _currentUser = tempUser;
+
+
         }
 
 
@@ -78,7 +84,7 @@ namespace TaskManagementSystem
                         switch (todoListMenuChoice)
                         {
                             case "1": AddTodo(); break;
-                            case "2": break;
+                            case "2": PrintAllTodos(); break;
                             case "3": break;
                             case "4": break;
                             case "5": break;
@@ -132,6 +138,29 @@ namespace TaskManagementSystem
                 int todoListId = GetUserInput<int>("\nSelect a todolist: ");
                 _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
                 _isTodoListMenuRunning = true;
+            }
+        }
+
+        private static void PrintAllTodos()
+        {
+            var todos = _taskService.GetAllTodoItems();
+            if (!todos.Any())
+            {
+                EmptyMessage("\nNo todos in memory.");
+            }
+            else
+            {
+                foreach (var todo in todos)
+                {
+
+                    Console.WriteLine(todo.Id);
+                    Console.WriteLine(todo.Title);
+                    Console.WriteLine(todo.Description == string.Empty ? "No description provided" : todo.Description);
+                    Console.WriteLine(todo.DueDate?.ToString(_dueDateFormat) ?? "No due date provided");
+                    Console.WriteLine(todo.IsCompleted);
+                    Console.WriteLine(todo.Priority);
+                    Console.WriteLine(todo.TodoListId);
+                }
             }
         }
 
@@ -223,23 +252,19 @@ namespace TaskManagementSystem
             Console.WriteLine("\n=== Add Todo ===");
             string title = GetUserInput<string>("Title: ", isRequired: true);
             string description = GetUserInput<string>("Description: ");
-            string dueDate = GetUserInput<string>($"Due Date ({_dueDateFormat}): ", isDateTime: true);
-            string priorityLevel = GetUserInput<string>("Priority (None, Low, Medium, High): ", isRequired: true, isPriorityLevel: true);
+            DateTime dueDate = GetUserInput<DateTime>($"Due Date ({_dueDateFormat}): ", isDateTime: true);
+            PriorityLevel priorityLevel = GetUserInput<PriorityLevel>("Priority (None, Low, Medium, High): ", isRequired: true, isPriorityLevel: true);
+            DateTime? parsedDueDate = dueDate == DateTime.MinValue ? null : dueDate;
 
-            DateTime? parsedDueDate;
-
-            if (string.IsNullOrEmpty(dueDate))
+            var newTodo = new TodoItem
             {
-                parsedDueDate = null;
-            }
-            else
-            {
-                parsedDueDate = DateTime.ParseExact(dueDate, _dueDateFormat, null);
-            }
-
-            var parsedPriorityLevel = Enum.Parse<PriorityLevel>(priorityLevel);
-
-            var newTodo = new TodoItem { Title = title, Description = description, DueDate = parsedDueDate, Priority = parsedPriorityLevel, TodoListId = _currentSelectedTodoList!.Id };
+                Title = title,
+                Description = description,
+                IsCompleted = false,
+                DueDate = parsedDueDate,
+                Priority = priorityLevel,
+                TodoListId = _currentSelectedTodoList!.Id
+            };
             _taskService.CreateTodoItem(newTodo);
             SuccessfullMessage("Successfully created a todo!");
         }
@@ -272,9 +297,13 @@ namespace TaskManagementSystem
                     }
                 }
 
-                if (isDateTime && userInput.Length > 0 && (typeof(T) == typeof(DateTime)))
+                if (isDateTime && (typeof(T) == typeof(DateTime)))
                 {
-                    if (DateTime.TryParse(userInput, out DateTime validDate))
+                    if (userInput.Length == 0)
+                    {
+                        return (T)(object)DateTime.MinValue;
+                    }
+                    if (DateTime.TryParseExact(userInput, _dueDateFormat, null, DateTimeStyles.None, out DateTime validDate))
                     {
                         return (T)(object)validDate;
                     }

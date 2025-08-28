@@ -10,6 +10,8 @@ namespace TaskManagementSystem.Service
         User? AuthenticateUser(string username, string password);
         IReadOnlyList<User> GetAllUsers();
         IReadOnlyList<TodoList> GetAllTodoLists();
+        IReadOnlyList<TodoItem> GetAllTodoItems();
+
         void PrintUserDetails(User user);
         TodoList? GetTodoListById(int id);
 
