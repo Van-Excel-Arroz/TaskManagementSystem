@@ -19,8 +19,9 @@ namespace TaskManagementSystem
         {
             var userRepository = new GenericRepository<User>();
             var todolistRepository = new GenericRepository<TodoList>();
+            var todoItemRepository = new GenericRepository<TodoItem>();
 
-            _taskService = new TaskService(userRepository, todolistRepository);
+            _taskService = new TaskService(userRepository, todolistRepository, todoItemRepository);
         }
 
 
@@ -76,7 +77,7 @@ namespace TaskManagementSystem
 
                         switch (todoListMenuChoice)
                         {
-                            case "1": break;
+                            case "1": AddTodo(); break;
                             case "2": break;
                             case "3": break;
                             case "4": break;
@@ -140,9 +141,9 @@ namespace TaskManagementSystem
             string username = GetStringInput("Username: ", isRequired: true);
             string password = GetStringInput("Password: ", isRequired: true);
 
-            _currentUser = _taskService.CreateUser(username, password);
+            _currentUser = new User { Username = username, Password = password };
+            _taskService.CreateUser(_currentUser);
             Console.WriteLine($"\nSuccessfully created an account!");
-
         }
 
         private static void Login()
@@ -210,7 +211,8 @@ namespace TaskManagementSystem
 
             Console.WriteLine("\n=== Create a TodoList ===");
             string title = GetStringInput("Title: ", isRequired: true);
-            _taskService.CreateTodoList(title, _currentUser.Id);
+            var newTodoList = new TodoList { Title = title, UserId = _currentUser.Id };
+            _taskService.CreateTodoList(newTodoList);
             Console.WriteLine($"\nSuccessfully created a todolist \"{title}\".");
         }
 
@@ -221,6 +223,22 @@ namespace TaskManagementSystem
             string description = GetStringInput("Description: ");
             string dueDate = GetStringInput($"Due Date ({_dueDateFormat}): ", isDateTime: true);
             string priorityLevel = GetStringInput("Priority (None, Low, Medium, High): ", isRequired: true, isPriorityLevel: true);
+
+            DateTime? parsedDueDate;
+
+            if (string.IsNullOrEmpty(dueDate))
+            {
+                parsedDueDate = null;
+            }
+            else
+            {
+                parsedDueDate = DateTime.ParseExact(dueDate, _dueDateFormat, null);
+            }
+
+            var parsedPriorityLevel = Enum.Parse<PriorityLevel>(priorityLevel);
+
+            var newTodo = new TodoItem { Title = title, Description = description, DueDate = parsedDueDate, Priority = parsedPriorityLevel, TodoListId = _currentSelectedTodoList!.Id };
+            _taskService.CreateTodoItem(newTodo);
         }
 
         private static string GetStringInput(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
@@ -238,7 +256,7 @@ namespace TaskManagementSystem
                     continue;
                 }
 
-                if (isDateTime && !DateTime.TryParse(userInput, out DateTime validDate))
+                if (isDateTime && !DateTime.TryParse(userInput, out DateTime validDate) && userInput.Length > 0)
                 {
                     PrintErrorMessage("Invalid date format, please try again.");
                     continue;

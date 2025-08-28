@@ -4,13 +4,14 @@ namespace TaskManagementSystem.Service
 {
     public interface ITaskService
     {
-        User CreateUser(string username, string password);
+        void CreateUser(User newUser);
+        void CreateTodoList(TodoList newTodoList);
+        void CreateTodoItem(TodoItem newTodo);
         User? AuthenticateUser(string username, string password);
         IReadOnlyList<User> GetAllUsers();
-        public IReadOnlyList<TodoList> GetAllTodoLists();
+        IReadOnlyList<TodoList> GetAllTodoLists();
         void PrintUserDetails(User user);
-        public void CreateTodoList(string title, int userId);
-        public TodoList? GetTodoListById(int id);
+        TodoList? GetTodoListById(int id);
 
 
 

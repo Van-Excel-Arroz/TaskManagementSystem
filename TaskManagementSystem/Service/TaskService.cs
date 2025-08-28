@@ -7,25 +7,29 @@ namespace TaskManagementSystem.Service
     {
         private readonly IGenericRepository<User> _userRepository;
         private readonly IGenericRepository<TodoList> _todolistRepository;
+        private readonly IGenericRepository<TodoItem> _todoItemRepository;
 
-        public TaskService(IGenericRepository<User> userRepository, IGenericRepository<TodoList> todolistRepository)
+
+        public TaskService(IGenericRepository<User> userRepository, IGenericRepository<TodoList> todolistRepository, IGenericRepository<TodoItem> todoItemRepository)
         {
             _userRepository = userRepository;
             _todolistRepository = todolistRepository;
-
+            _todoItemRepository = todoItemRepository;
         }
 
-        public User CreateUser(string username, string password)
+        public void CreateUser(User newUser)
         {
-            var newUser = new User { Username = username, Password = password };
             _userRepository.Add(newUser);
-            return newUser;
         }
 
-        public void CreateTodoList(string title, int userId)
+        public void CreateTodoList(TodoList newTodoList)
         {
-            var newTodoList = new TodoList { Title = title, UserId = userId };
             _todolistRepository.Add(newTodoList);
+        }
+
+        public void CreateTodoItem(TodoItem newTodo)
+        {
+            _todoItemRepository.Add(newTodo);
         }
 
         public User? AuthenticateUser(string username, string password)
