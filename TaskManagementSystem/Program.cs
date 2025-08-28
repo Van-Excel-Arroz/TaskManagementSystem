@@ -44,7 +44,7 @@ namespace TaskManagementSystem
                         case "2": Login(); break;
                         case "3": _isAuthMenuRunning = false; break;
                         case "4": PrintAllUsers(); break;
-                        default: PrintErrorMessage(); break;
+                        default: ErrorMessage(); break;
                     }
                     PauseAndClearConsole();
                 }
@@ -64,7 +64,7 @@ namespace TaskManagementSystem
                                 _isAuthMenuRunning = true;
                                 break;
                             }
-                        default: PrintErrorMessage(); break;
+                        default: ErrorMessage(); break;
                     }
                     PauseAndClearConsole();
 
@@ -104,7 +104,7 @@ namespace TaskManagementSystem
             var users = _taskService.GetAllUsers();
             if (!users.Any())
             {
-                Console.WriteLine("No users in memory.");
+                EmptyMessage("\nNo users in memory.");
             }
             else
             {
@@ -120,7 +120,7 @@ namespace TaskManagementSystem
             var todolists = _taskService.GetAllTodoLists();
             if (!todolists.Any())
             {
-                Console.WriteLine("\nNo todolists in memory.");
+                EmptyMessage("\nNo todolists in memory.");
             }
             else
             {
@@ -143,7 +143,8 @@ namespace TaskManagementSystem
 
             _currentUser = new User { Username = username, Password = password };
             _taskService.CreateUser(_currentUser);
-            Console.WriteLine($"\nSuccessfully created an account!");
+            SuccessfullMessage("\nSuccessfully created an account!");
+
         }
 
         private static void Login()
@@ -158,11 +159,12 @@ namespace TaskManagementSystem
                 _currentUser = existingUser;
                 _isAuthMenuRunning = false;
                 _isMainMenuRunning = true;
-                Console.WriteLine($"\nLogin Successfully, Welcome {_currentUser.Username}!");
+                SuccessfullMessage($"\nLogin Successfully, Welcome {_currentUser.Username}!");
+
             }
             else
             {
-                PrintErrorMessage("Incorrect username or password. Please try again.");
+                ErrorMessage("Incorrect username or password. Please try again.");
             }
         }
 
@@ -213,7 +215,7 @@ namespace TaskManagementSystem
             string title = GetUserInput<string>("Title: ", isRequired: true);
             var newTodoList = new TodoList { Title = title, UserId = _currentUser.Id };
             _taskService.CreateTodoList(newTodoList);
-            Console.WriteLine($"\nSuccessfully created a todolist \"{title}\".");
+            SuccessfullMessage($"\nSuccessfully created a todolist \"{title}\"!");
         }
 
         private static void AddTodo()
@@ -239,6 +241,7 @@ namespace TaskManagementSystem
 
             var newTodo = new TodoItem { Title = title, Description = description, DueDate = parsedDueDate, Priority = parsedPriorityLevel, TodoListId = _currentSelectedTodoList!.Id };
             _taskService.CreateTodoItem(newTodo);
+            SuccessfullMessage("Successfully created a todo!");
         }
 
         private static T GetUserInput<T>(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
@@ -252,7 +255,7 @@ namespace TaskManagementSystem
 
                 if (isRequired && userInput.Length == 0)
                 {
-                    PrintErrorMessage("You can't leave this field empty.");
+                    ErrorMessage("You can't leave this field empty.");
                     continue;
                 }
 
@@ -264,7 +267,7 @@ namespace TaskManagementSystem
                     }
                     else
                     {
-                        PrintErrorMessage("Invalid input, please only enter numbers only.");
+                        ErrorMessage("Invalid input, please only enter numbers only.");
                         continue;
                     }
                 }
@@ -277,7 +280,7 @@ namespace TaskManagementSystem
                     }
                     else
                     {
-                        PrintErrorMessage("Invalid date format, please try again.");
+                        ErrorMessage("Invalid date format, please try again.");
                         continue;
                     }
 
@@ -290,7 +293,7 @@ namespace TaskManagementSystem
                         return (T)(object)priority;
                     }
                     {
-                        PrintErrorMessage("Invalid input, please select the exact priority.");
+                        ErrorMessage("Invalid input, please select the exact priority.");
                         continue;
                     }
 
@@ -303,9 +306,23 @@ namespace TaskManagementSystem
         }
 
 
-        private static void PrintErrorMessage(string message = "Invalid option, please try again.")
+        private static void ErrorMessage(string message = "Invalid option, please try again.")
         {
             Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        private static void SuccessfullMessage(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(message);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        private static void EmptyMessage(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Gray;
             Console.WriteLine(message);
             Console.ForegroundColor = ConsoleColor.White;
         }
