@@ -36,7 +36,7 @@ namespace TaskManagementSystem
                 while (_isAuthMenuRunning)
                 {
                     DisplayAuthMenu();
-                    string authMenuChoice = GetStringInput("\nEnter: ");
+                    string authMenuChoice = GetUserInput<string>("\nEnter: ");
 
                     switch (authMenuChoice)
                     {
@@ -52,7 +52,7 @@ namespace TaskManagementSystem
                 while (_isMainMenuRunning)
                 {
                     DisplayMainMenu();
-                    string mainMenuChoice = GetStringInput("\nEnter: ");
+                    string mainMenuChoice = GetUserInput<string>("\nEnter: ");
 
                     switch (mainMenuChoice)
                     {
@@ -73,7 +73,7 @@ namespace TaskManagementSystem
                     while (_isTodoListMenuRunning)
                     {
                         DisplayTodoListMenu();
-                        string todoListMenuChoice = GetStringInput("\nEnter: ");
+                        string todoListMenuChoice = GetUserInput<string>("\nEnter: ");
 
                         switch (todoListMenuChoice)
                         {
@@ -129,7 +129,7 @@ namespace TaskManagementSystem
                     Console.WriteLine($"[{todolist.Id}] {todolist.Title}");
                 }
 
-                int todoListId = GetIntegerInput("\nSelect a todolist: ");
+                int todoListId = GetUserInput<int>("\nSelect a todolist: ");
                 _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
                 _isTodoListMenuRunning = true;
             }
@@ -138,8 +138,8 @@ namespace TaskManagementSystem
         private static void SignUp()
         {
             Console.WriteLine("\n=== Sign Up ===");
-            string username = GetStringInput("Username: ", isRequired: true);
-            string password = GetStringInput("Password: ", isRequired: true);
+            string username = GetUserInput<string>("Username: ", isRequired: true);
+            string password = GetUserInput<string>("Password: ", isRequired: true);
 
             _currentUser = new User { Username = username, Password = password };
             _taskService.CreateUser(_currentUser);
@@ -149,8 +149,8 @@ namespace TaskManagementSystem
         private static void Login()
         {
             Console.WriteLine("\n=== Login ===");
-            string username = GetStringInput("Username: ", isRequired: true);
-            string password = GetStringInput("Password: ", isRequired: true);
+            string username = GetUserInput<string>("Username: ", isRequired: true);
+            string password = GetUserInput<string>("Password: ", isRequired: true);
 
             var existingUser = _taskService.AuthenticateUser(username, password);
             if (existingUser != null)
@@ -210,7 +210,7 @@ namespace TaskManagementSystem
             }
 
             Console.WriteLine("\n=== Create a TodoList ===");
-            string title = GetStringInput("Title: ", isRequired: true);
+            string title = GetUserInput<string>("Title: ", isRequired: true);
             var newTodoList = new TodoList { Title = title, UserId = _currentUser.Id };
             _taskService.CreateTodoList(newTodoList);
             Console.WriteLine($"\nSuccessfully created a todolist \"{title}\".");
@@ -219,10 +219,10 @@ namespace TaskManagementSystem
         private static void AddTodo()
         {
             Console.WriteLine("\n=== Add Todo ===");
-            string title = GetStringInput("Title: ", isRequired: true);
-            string description = GetStringInput("Description: ");
-            string dueDate = GetStringInput($"Due Date ({_dueDateFormat}): ", isDateTime: true);
-            string priorityLevel = GetStringInput("Priority (None, Low, Medium, High): ", isRequired: true, isPriorityLevel: true);
+            string title = GetUserInput<string>("Title: ", isRequired: true);
+            string description = GetUserInput<string>("Description: ");
+            string dueDate = GetUserInput<string>($"Due Date ({_dueDateFormat}): ", isDateTime: true);
+            string priorityLevel = GetUserInput<string>("Priority (None, Low, Medium, High): ", isRequired: true, isPriorityLevel: true);
 
             DateTime? parsedDueDate;
 
@@ -241,7 +241,7 @@ namespace TaskManagementSystem
             _taskService.CreateTodoItem(newTodo);
         }
 
-        private static string GetStringInput(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
+        private static T GetUserInput<T>(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
         {
             bool isInputPending = true;
 
@@ -256,45 +256,47 @@ namespace TaskManagementSystem
                     continue;
                 }
 
-                if (isDateTime && !DateTime.TryParse(userInput, out DateTime validDate) && userInput.Length > 0)
+                if (typeof(T) == typeof(int))
                 {
-                    PrintErrorMessage("Invalid date format, please try again.");
-                    continue;
+                    if (int.TryParse(userInput, out int parsedInt))
+                    {
+                        return (T)(object)parsedInt;
+                    }
                 }
 
-                if (isPriorityLevel && !Enum.TryParse(userInput, out PriorityLevel priority))
+                if (isDateTime && userInput.Length > 0 && (typeof(T) == typeof(DateTime)))
                 {
-                    PrintErrorMessage("Invalid input, please select the exact priority.");
-                    continue;
+                    if (DateTime.TryParse(userInput, out DateTime validDate))
+                    {
+                        return (T)(object)validDate;
+                    }
+                    else
+                    {
+                        PrintErrorMessage("Invalid date format, please try again.");
+                        continue;
+                    }
+
+                }
+
+                if (isPriorityLevel && (typeof(T) == typeof(PriorityLevel)))
+                {
+                    if (Enum.TryParse(userInput, out PriorityLevel priority))
+                    {
+                        return (T)(object)priority;
+                    }
+                    {
+                        PrintErrorMessage("Invalid input, please select the exact priority.");
+                        continue;
+                    }
+
                 }
                 isInputPending = false;
-                return userInput;
+                return (T)(object)userInput;
 
             }
-            return string.Empty;
+            return (T)(object)string.Empty;
         }
 
-        private static int GetIntegerInput(string prompt)
-        {
-            bool isInputPending = true;
-
-            while (isInputPending)
-            {
-                try
-                {
-                    Console.Write($"{prompt}");
-                    string userInput = Console.ReadLine() ?? string.Empty;
-                    int parseInput = int.Parse(userInput);
-                    return parseInput;
-                }
-                catch (FormatException ex)
-                {
-                    PrintErrorMessage($"Invalid input, please try again. {ex.Message}");
-
-                }
-            }
-            return -1;
-        }
 
         private static void PrintErrorMessage(string message = "Invalid option, please try again.")
         {
