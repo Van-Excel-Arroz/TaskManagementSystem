@@ -76,14 +76,7 @@ namespace TaskManagementSystem
 
                         switch (todoListMenuChoice)
                         {
-                            case "1": break;
-                            case "2": break;
-                            case "3": break;
-                            case "4": break;
-                            case "5": break;
-                            case "6": break;
-                            case "7": break;
-                            case "8":
+                            case "5":
                                 {
                                     _isTodoListMenuRunning = false;
                                     _currentSelectedTodoList = null;
@@ -191,13 +184,10 @@ namespace TaskManagementSystem
         {
             Console.WriteLine($"=== Todo List \"{_currentSelectedTodoList?.Title}\" ===\n");
             Console.WriteLine("[1] Create a todo");
-            Console.WriteLine("[2] Display all todos");
-            Console.WriteLine("[3] Delete todos");
-            Console.WriteLine("[4] Mark todos as completed");
-            Console.WriteLine("[5] Update a todo");
-            Console.WriteLine("[6] Rename list");
-            Console.WriteLine("[7] Delete entire list");
-            Console.WriteLine("[8] Back");
+            Console.WriteLine("[2] Delete todo\\s");
+            Console.WriteLine("[3] Rename");
+            Console.WriteLine("[4] Delete");
+            Console.WriteLine("[5] Back");
         }
 
         private static void AddTodoList()
@@ -212,15 +202,6 @@ namespace TaskManagementSystem
             string title = GetStringInput("Title: ", isRequired: true);
             _taskService.CreateTodoList(title, _currentUser.Id);
             Console.WriteLine($"\nSuccessfully created a todolist \"{title}\".");
-        }
-
-        private static void AddTodo()
-        {
-            Console.WriteLine("\n=== Add Todo ===");
-            string title = GetStringInput("Title: ", isRequired: true);
-            string description = GetStringInput("Description: ");
-            string dueDate = GetStringInput($"Due Date ({_dueDateFormat}): ", isDateTime: true);
-            string priorityLevel = GetStringInput("Priority (None, Low, Medium, High): ", isRequired: true, isPriorityLevel: true);
         }
 
         private static string GetStringInput(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
