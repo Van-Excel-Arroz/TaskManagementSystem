@@ -247,7 +247,7 @@ namespace TaskManagementSystem
 
             while (isInputPending)
             {
-                Console.Write($"{prompt}");
+                Console.Write(prompt);
                 string userInput = Console.ReadLine() ?? string.Empty;
 
                 if (isRequired && userInput.Length == 0)
@@ -261,6 +261,11 @@ namespace TaskManagementSystem
                     if (int.TryParse(userInput, out int parsedInt))
                     {
                         return (T)(object)parsedInt;
+                    }
+                    else
+                    {
+                        PrintErrorMessage("Invalid input, please only enter numbers only.");
+                        continue;
                     }
                 }
 
