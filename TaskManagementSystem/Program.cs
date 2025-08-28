@@ -13,6 +13,7 @@ namespace TaskManagementSystem
         private static bool _isAuthMenuRunning = true;
         private static bool _isMainMenuRunning = false;
         private static bool _isTodoListMenuRunning = false;
+        private static string _dueDateFormat = "yyyy-MM-dd HH:mm aa";
 
         static Program()
         {
@@ -25,6 +26,7 @@ namespace TaskManagementSystem
 
         static void Main(string[] args)
         {
+
             Console.WriteLine("Task Management System\n");
 
             while (_isProgramRunning)
@@ -33,7 +35,7 @@ namespace TaskManagementSystem
                 while (_isAuthMenuRunning)
                 {
                     DisplayAuthMenu();
-                    string authMenuChoice = Console.ReadLine() ?? string.Empty;
+                    string authMenuChoice = GetStringInput("\nEnter: ");
 
                     switch (authMenuChoice)
                     {
@@ -49,7 +51,7 @@ namespace TaskManagementSystem
                 while (_isMainMenuRunning)
                 {
                     DisplayMainMenu();
-                    string mainMenuChoice = Console.ReadLine() ?? string.Empty;
+                    string mainMenuChoice = GetStringInput("\nEnter: ");
 
                     switch (mainMenuChoice)
                     {
@@ -70,7 +72,7 @@ namespace TaskManagementSystem
                     while (_isTodoListMenuRunning)
                     {
                         DisplayTodoListMenu();
-                        string todoListMenuChoice = Console.ReadLine() ?? string.Empty;
+                        string todoListMenuChoice = GetStringInput("\nEnter: ");
 
                         switch (todoListMenuChoice)
                         {
@@ -119,31 +121,17 @@ namespace TaskManagementSystem
                     Console.WriteLine($"[{todolist.Id}] {todolist.Title}");
                 }
 
-                try
-                {
-                    Console.Write("\nSelect a todolist: ");
-                    string choice = Console.ReadLine() ?? string.Empty;
-                    int todoListId = int.Parse(choice);
-                    _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
-                    _isTodoListMenuRunning = true;
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine("Invalid input, please try again.", ex);
-                }
-
-
-
+                int todoListId = GetIntegerInput("\nSelect a todolist: ");
+                _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
+                _isTodoListMenuRunning = true;
             }
         }
 
         private static void SignUp()
         {
             Console.WriteLine("\n=== Sign Up ===");
-            Console.Write("Username: ");
-            string username = Console.ReadLine() ?? "";
-            Console.Write("Password: ");
-            string password = Console.ReadLine() ?? "";
+            string username = GetStringInput("Username: ", isRequired: true);
+            string password = GetStringInput("Password: ", isRequired: true);
 
             _currentUser = _taskService.CreateUser(username, password);
             Console.WriteLine($"\nSuccessfully created an account!");
@@ -153,10 +141,9 @@ namespace TaskManagementSystem
         private static void Login()
         {
             Console.WriteLine("\n=== Login ===");
-            Console.Write("Username: ");
-            string username = Console.ReadLine() ?? "";
-            Console.Write("Password: ");
-            string password = Console.ReadLine() ?? "";
+            string username = GetStringInput("Username: ", isRequired: true);
+            string password = GetStringInput("Password: ", isRequired: true);
+
             var existingUser = _taskService.AuthenticateUser(username, password);
             if (existingUser != null)
             {
@@ -183,7 +170,6 @@ namespace TaskManagementSystem
             Console.WriteLine("[1] Create a todo list");
             Console.WriteLine("[2] Display all todo lists");
             Console.WriteLine("[3] Logout");
-            Console.Write("\nEnter: ");
         }
 
         private static void DisplayAuthMenu()
@@ -192,7 +178,6 @@ namespace TaskManagementSystem
             Console.WriteLine("[2] Log In");
             Console.WriteLine("[3] Exit");
             Console.WriteLine("[4] See all users");
-            Console.Write("\nEnter: ");
         }
 
         private static void DisplayTodoListMenu()
@@ -203,7 +188,61 @@ namespace TaskManagementSystem
             Console.WriteLine("[3] Rename");
             Console.WriteLine("[4] Delete");
             Console.WriteLine("[5] Back");
-            Console.Write("\nEnter: ");
+        }
+
+        private static string GetStringInput(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
+        {
+            bool isInputPending = true;
+
+            while (isInputPending)
+            {
+                Console.Write($"{prompt}");
+                string userInput = Console.ReadLine() ?? string.Empty;
+
+                if (isRequired && userInput.Length == 0)
+                {
+                    Console.WriteLine("You can't leave this field empty");
+                    continue;
+                }
+
+                if (isDateTime && !DateTime.TryParse(userInput, out DateTime validDate))
+                {
+                    Console.WriteLine("Invalid date format, please try again.");
+                    continue;
+                }
+
+                if (isPriorityLevel && !Enum.TryParse(userInput, out PriorityLevel priority))
+                {
+                    Console.WriteLine("Invalid input, please select the exact priority.");
+                    continue;
+                }
+
+                isInputPending = false;
+                return userInput;
+
+            }
+            return string.Empty;
+        }
+
+        private static int GetIntegerInput(string prompt)
+        {
+            bool isInputPending = true;
+
+            while (isInputPending)
+            {
+                try
+                {
+                    Console.Write($"{prompt}: ");
+                    string userInput = Console.ReadLine() ?? string.Empty;
+                    int parseInput = int.Parse(userInput);
+                    return parseInput;
+                }
+                catch (FormatException ex)
+                {
+                    Console.WriteLine("Invalid input, please try again.", ex.Message);
+                }
+            }
+            return -1;
         }
 
         private static void AddTodoList()
@@ -215,8 +254,7 @@ namespace TaskManagementSystem
             }
 
             Console.WriteLine("\n=== Create a TodoList ===");
-            Console.Write("Title: ");
-            string title = Console.ReadLine() ?? string.Empty;
+            string title = GetStringInput("Title: ");
             _taskService.CreateTodoList(title, _currentUser.Id);
             Console.WriteLine($"\nSuccessfully created a todolist \"{title}\".");
         }
