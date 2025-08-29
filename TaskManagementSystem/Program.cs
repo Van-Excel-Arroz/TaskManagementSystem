@@ -149,13 +149,16 @@ namespace TaskManagementSystem
                 foreach (var todo in todos)
                 {
 
-                    Console.WriteLine(todo.Id);
-                    Console.WriteLine(todo.Title);
-                    Console.WriteLine(todo.Description == string.Empty ? "No description provided" : todo.Description);
-                    Console.WriteLine(todo.DueDate?.ToString(_dueDateFormat) ?? "No due date provided");
-                    Console.WriteLine(todo.IsCompleted);
-                    Console.WriteLine(todo.Priority);
-                    Console.WriteLine(todo.TodoListId);
+                    if (todo.TodoListId == _currentSelectedTodoList!.Id)
+                    {
+                        Console.WriteLine(todo.Id);
+                        Console.WriteLine(todo.Title);
+                        Console.WriteLine(todo.Description == string.Empty ? "No description provided" : todo.Description);
+                        Console.WriteLine(todo.DueDate?.ToString(_dueDateFormat) ?? "No due date provided");
+                        Console.WriteLine(todo.IsCompleted);
+                        Console.WriteLine(todo.Priority);
+                        Console.WriteLine(todo.TodoListId);
+                    }
                 }
             }
         }
