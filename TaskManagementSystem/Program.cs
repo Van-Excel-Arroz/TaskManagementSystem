@@ -16,6 +16,13 @@ namespace TaskManagementSystem
         private static bool _isTodoListMenuRunning = false;
         private static string _dueDateFormat = "yyyy-MM-dd hh:mm tt";
 
+        private const int IdWidth = 4;
+        private const int TitleWidth = 30;
+        private const int DescriptionWidth = 50;
+        private const int DueDateWidth = 22;
+        private const int PriorityWidth = 10;
+        private const int CompletedWidth = 10;
+
         static Program()
         {
             var userRepository = new GenericRepository<User>();
@@ -146,18 +153,14 @@ namespace TaskManagementSystem
             }
             else
             {
+                PrintTodoTableHeader();
+
                 foreach (var todo in todos)
                 {
 
                     if (todo.TodoListId == _currentSelectedTodoList!.Id)
                     {
-                        Console.WriteLine(todo.Id);
-                        Console.WriteLine(todo.Title);
-                        Console.WriteLine(todo.Description == string.Empty ? "No description provided" : todo.Description);
-                        Console.WriteLine(todo.DueDate?.ToString(_dueDateFormat) ?? "No due date provided");
-                        Console.WriteLine(todo.IsCompleted);
-                        Console.WriteLine(todo.Priority);
-                        Console.WriteLine(todo.TodoListId);
+                        PrintTodoRow(todo);
                     }
                 }
             }
@@ -332,6 +335,21 @@ namespace TaskManagementSystem
 
             }
             return (T)(object)string.Empty;
+        }
+
+        private static void PrintTodoTableHeader()
+        {
+            Console.WriteLine($"\n{"ID",-IdWidth} | {"Title",-TitleWidth} | {"Description",-DescriptionWidth} | {"Due Date",-DueDateWidth} | {"Priority",-PriorityWidth} | {"Completed",-CompletedWidth}");
+            Console.WriteLine($"{new string('-', IdWidth)}-+-{new string('-', TitleWidth)}-+-{new string('-', DescriptionWidth)}-+-{new string('-', DueDateWidth)}-+-{new string('-', PriorityWidth)}-+-{new string('-', CompletedWidth)}");
+        }
+
+        private static void PrintTodoRow(TodoItem todo)
+        {
+            string dueDate = todo.DueDate?.ToString(_dueDateFormat) ?? "N/A";
+            string isCompleted = todo.IsCompleted ? "[/] Yes" : "[X] No";
+            string truncatedDescription = todo.Description.Length > DescriptionWidth ? todo.Description.Substring(0, DescriptionWidth - 3) + "..." : todo.Description;
+
+            Console.WriteLine($"{todo.Id,-IdWidth} | {todo.Title,-TitleWidth} | {truncatedDescription,-DescriptionWidth} | {dueDate,-DueDateWidth} | {todo.Priority,-PriorityWidth} | {isCompleted,-CompletedWidth} | {todo.TodoListId}");
         }
 
 
