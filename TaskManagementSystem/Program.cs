@@ -26,8 +26,6 @@ namespace TaskManagementSystem
             var tempUser = new User { Username = "van", Password = "lol" };
             _taskService.CreateUser(tempUser);
             _currentUser = tempUser;
-
-
         }
 
 
@@ -268,6 +266,7 @@ namespace TaskManagementSystem
             _taskService.CreateTodoItem(newTodo);
             SuccessfullMessage("Successfully created a todo!");
         }
+
 
         private static T GetUserInput<T>(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
         {

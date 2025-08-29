@@ -32,6 +32,11 @@ namespace TaskManagementSystem.Service
             _todoItemRepository.Add(newTodo);
         }
 
+        public void DeleteTodoItem(int id)
+        {
+            _todoItemRepository.Remove(id);
+        }
+
         public User? AuthenticateUser(string username, string password)
         {
             var existingUser = _userRepository.GetAll().FirstOrDefault(u => u.Username == username && u.Password == password);
