@@ -53,14 +53,19 @@ namespace TaskManagementSystem.Service
             return _todolistRepository.GetAll();
         }
 
-        public IReadOnlyList<TodoItem> GetAllTodoItems()
+        public IEnumerable<TodoItem> GetAllTodoItems(int todoListId)
         {
-            return _todoItemRepository.GetAll();
+            return _todoItemRepository.GetAll().Where(t => t.TodoListId == todoListId);
         }
 
         public TodoList? GetTodoListById(int id)
         {
             return _todolistRepository.GetById(id);
+        }
+
+        public TodoItem? GetTodoItemById(int id)
+        {
+            return _todoItemRepository.GetById(id);
         }
 
         public void PrintUserDetails(User user)

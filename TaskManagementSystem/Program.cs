@@ -88,7 +88,7 @@ namespace TaskManagementSystem
                         {
                             case "1": AddTodo(); break;
                             case "2": PrintAllTodos(); break;
-                            case "3": break;
+                            case "3": DeleteTodos(); break;
                             case "4": break;
                             case "5": break;
                             case "6": break;
@@ -146,7 +146,7 @@ namespace TaskManagementSystem
 
         private static void PrintAllTodos()
         {
-            var todos = _taskService.GetAllTodoItems();
+            var todos = _taskService.GetAllTodoItems(_currentSelectedTodoList!.Id);
             if (!todos.Any())
             {
                 EmptyMessage("\nNo todos in memory.");
@@ -158,10 +158,8 @@ namespace TaskManagementSystem
                 foreach (var todo in todos)
                 {
 
-                    if (todo.TodoListId == _currentSelectedTodoList!.Id)
-                    {
-                        PrintTodoRow(todo);
-                    }
+                    PrintTodoRow(todo);
+
                 }
             }
         }
@@ -271,6 +269,45 @@ namespace TaskManagementSystem
             SuccessfullMessage("Successfully created a todo!");
         }
 
+        private static void DeleteTodos()
+        {
+            PrintAllTodos();
+
+            string selectedTodoIds = GetUserInput<string>("Select IDs in a separted comma: ", isRequired: true);
+            var parsedTodoIdsList = selectedTodoIds.Split(',').Select(id =>
+            {
+                try
+                {
+                    int parsedId = int.Parse(id);
+                    var todo = _taskService.GetTodoItemById(parsedId);
+                    if (todo != null)
+                    {
+                        return parsedId;
+                    }
+                    else
+                    {
+                        ErrorMessage("Invalid option, please only select the correct IDs.");
+                        return -1;
+                    }
+                }
+                catch (FormatException ex)
+                {
+                    ErrorMessage($"Invalid option, please only select the correct IDs. {ex}");
+                    return -1;
+                }
+            });
+
+
+
+
+            foreach (var todoId in parsedTodoIdsList)
+            {
+                _taskService.DeleteTodoItem(todoId);
+            }
+
+            SuccessfullMessage($"Succesfully deleted todo IDs []");
+
+        }
 
         private static T GetUserInput<T>(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
         {
