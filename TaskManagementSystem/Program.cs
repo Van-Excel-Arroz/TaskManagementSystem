@@ -297,9 +297,6 @@ namespace TaskManagementSystem
                 }
             });
 
-
-
-
             foreach (var todoId in parsedTodoIdsList)
             {
                 _taskService.DeleteTodoItem(todoId);
@@ -316,7 +313,7 @@ namespace TaskManagementSystem
             while (isInputPending)
             {
                 Console.Write(prompt);
-                string userInput = Console.ReadLine() ?? string.Empty;
+                string userInput = Console.ReadLine()?.Trim() ?? string.Empty;
 
                 if (isRequired && userInput.Length == 0)
                 {
