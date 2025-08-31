@@ -273,36 +273,38 @@ namespace TaskManagementSystem
         {
             PrintAllTodos();
 
-            string selectedTodoIds = GetUserInput<string>("Select IDs in a separted comma: ", isRequired: true);
-            var parsedTodoIdsList = selectedTodoIds.Split(',').Select(id =>
-            {
-                try
-                {
-                    int parsedId = int.Parse(id);
-                    var todo = _taskService.GetTodoItemById(parsedId);
-                    if (todo != null)
-                    {
-                        return parsedId;
-                    }
-                    else
-                    {
-                        ErrorMessage("Invalid option, please only select the correct IDs.");
-                        return -1;
-                    }
-                }
-                catch (FormatException ex)
-                {
-                    ErrorMessage($"Invalid option, please only select the correct IDs. {ex}");
-                    return -1;
-                }
-            });
+            bool isInputPending = true;
+            List<int> selectedTodoIds = new();
 
-            foreach (var todoId in parsedTodoIdsList)
+            Console.WriteLine("\nSelect the IDs you want to delete, select 0 to stop.");
+            while (isInputPending)
+            {
+                int selectedTodoId = GetUserInput<int>("ID: ", isRequired: true);
+
+                if (selectedTodoId == 0)
+                {
+                    isInputPending = false;
+                    break;
+                }
+
+                var todo = _taskService.GetTodoItemById(selectedTodoId);
+
+                if (todo != null && _currentSelectedTodoList!.Id == todo.TodoListId)
+                {
+                    selectedTodoIds.Add(selectedTodoId);
+                }
+                else
+                {
+                    ErrorMessage($"Todo ID \'{selectedTodoId}\' does not exist.");
+                }
+            }
+
+            foreach (var todoId in selectedTodoIds)
             {
                 _taskService.DeleteTodoItem(todoId);
             }
 
-            SuccessfullMessage($"Succesfully deleted todo IDs []");
+            SuccessfullMessage($"Succesfully deleted todo IDs!");
 
         }
 
