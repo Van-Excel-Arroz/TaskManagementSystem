@@ -307,6 +307,7 @@ namespace TaskManagementSystem
             SuccessfullMessage($"Succesfully deleted todo IDs!\n");
             PauseAndClearConsole();
             PrintAllTodos();
+            // this will print the updated list of todos after deletion
 
         }
 
