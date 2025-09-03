@@ -301,7 +301,10 @@ namespace TaskManagementSystem
                 _taskService.DeleteTodoItem(todoId);
             }
 
-            SuccessfullMessage($"Succesfully deleted todo IDs!");
+            SuccessfullMessage($"Succesfully deleted todo IDs!\n");
+            PauseAndClearConsole();
+            PrintAllTodos();
+            // this will print the updated list of todos after deletion
 
         }
 
