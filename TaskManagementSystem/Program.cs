@@ -15,6 +15,7 @@ namespace TaskManagementSystem
         private static bool _isMainMenuRunning = true;
         private static bool _isTodoListMenuRunning = false;
         private static string _dueDateFormat = "yyyy-MM-dd hh:mm tt";
+        private static string _priorityLevels = "(None, Low, Medium, High)";
 
         private const int IdWidth = 4;
         private const int TitleWidth = 30;
@@ -253,7 +254,7 @@ namespace TaskManagementSystem
             string title = GetUserInput<string>("Title: ", isRequired: true);
             string description = GetUserInput<string>("Description: ");
             DateTime dueDate = GetUserInput<DateTime>($"Due Date ({_dueDateFormat}): ", isDateTime: true);
-            PriorityLevel priorityLevel = GetUserInput<PriorityLevel>("Priority (None, Low, Medium, High): ", isRequired: true, isPriorityLevel: true);
+            PriorityLevel priorityLevel = GetUserInput<PriorityLevel>($"Priority {_priorityLevels}: ", isRequired: true, isPriorityLevel: true);
             DateTime? parsedDueDate = dueDate == DateTime.MinValue ? null : dueDate;
 
             var newTodo = new TodoItem
@@ -281,11 +282,7 @@ namespace TaskManagementSystem
             {
                 int selectedTodoId = GetUserInput<int>("ID: ", isRequired: true);
 
-                if (selectedTodoId == 0)
-                {
-                    isInputPending = false;
-                    break;
-                }
+                if (selectedTodoId == 0) break;
 
                 var todo = _taskService.GetTodoItemById(selectedTodoId);
 
@@ -320,11 +317,8 @@ namespace TaskManagementSystem
             {
                 int selectedTodoId = GetUserInput<int>("ID: ", isRequired: true);
 
-                if (selectedTodoId == 0)
-                {
-                    isInputPending = false;
-                    break;
-                }
+                if (selectedTodoId == 0) break;
+
 
                 var todo = _taskService.GetTodoItemById(selectedTodoId);
 
@@ -347,7 +341,23 @@ namespace TaskManagementSystem
 
         }
 
-        private static T GetUserInput<T>(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false)
+        private static void UpdateTodo()
+        {
+            PrintAllTodos();
+
+            Console.WriteLine("\nSelect the ID you want to update, you can leave it empty if you don't want to update it.");
+            TodoItem todo = GetUserInput<TodoItem>("ID: ", isRequired: true, isTodoId: true);
+
+            string title = GetUserInput<string>("Title: ", hasDefaultValue: true, defaultValue: todo.Title);
+            string description = GetUserInput<string>("Description: ", hasDefaultValue: true, defaultValue: todo.Description);
+            DateTime dueDate = GetUserInput<DateTime>($"Due Date ({_dueDateFormat}): ", hasDefaultValue: true, defaultValue: todo.DueDate ?? DateTime.MinValue);
+            PriorityLevel priority = GetUserInput<PriorityLevel>("Priority (): ", hasDefaultValue: true, defaultValue: todo.Priority);
+
+            SuccessfullMessage($"Succesfully mark as completed of the selected todo IDs!");
+        }
+
+
+        private static T GetUserInput<T>(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false, bool isTodoId = false, bool hasDefaultValue = false, T? defaultValue = default(T))
         {
             bool isInputPending = true;
 
@@ -356,17 +366,47 @@ namespace TaskManagementSystem
                 Console.Write(prompt);
                 string userInput = Console.ReadLine()?.Trim() ?? string.Empty;
 
+                if (hasDefaultValue && userInput == string.Empty)
+                {
+                    if (defaultValue != null || defaultValue != DateTime.MinValue)
+                    {
+                        return defaultValue;
+                    }
+                    else
+                    {
+                        ErrorMessage("No default value provided!");
+                    }
+
+                }
+                else
+
                 if (isRequired && userInput.Length == 0)
                 {
                     ErrorMessage("You can't leave this field empty.");
                     continue;
                 }
 
-                if (typeof(T) == typeof(int))
+
+                if (typeof(T) == typeof(int) || typeof(T) == typeof(TodoItem))
                 {
-                    if (int.TryParse(userInput, out int parsedInt))
+                    if (int.TryParse(userInput, out int parsedIntInput))
+
                     {
-                        return (T)(object)parsedInt;
+                        if (isTodoId)
+                        {
+                            var todo = _taskService.GetTodoItemById(parsedIntInput);
+
+                            if (todo == null || _currentSelectedTodoList!.Id != todo.TodoListId)
+                            {
+                                ErrorMessage($"Todo ID \'{parsedIntInput}\' does not exist.");
+                                continue;
+                            }
+                            else
+                            {
+                                return (T)(object)todo;
+                            }
+                        }
+                        return (T)(object)parsedIntInput;
                     }
                     else
                     {
