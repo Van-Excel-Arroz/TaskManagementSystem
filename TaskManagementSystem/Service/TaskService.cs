@@ -37,6 +37,11 @@ namespace TaskManagementSystem.Service
             _todoItemRepository.Remove(id);
         }
 
+        public void MarkTodoAsCompleted(TodoItem todo)
+        {
+            todo.IsCompleted = true;
+        }
+
         public User? AuthenticateUser(string username, string password)
         {
             var existingUser = _userRepository.GetAll().FirstOrDefault(u => u.Username == username && u.Password == password);

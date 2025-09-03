@@ -89,7 +89,7 @@ namespace TaskManagementSystem
                             case "1": AddTodo(); break;
                             case "2": PrintAllTodos(); break;
                             case "3": DeleteTodos(); break;
-                            case "4": break;
+                            case "4": MarkTodosCompletion(); break;
                             case "5": break;
                             case "6": break;
                             case "7": break;
@@ -305,6 +305,45 @@ namespace TaskManagementSystem
             }
 
             SuccessfullMessage($"Succesfully deleted todo IDs!");
+
+        }
+
+        private static void MarkTodosCompletion()
+        {
+            PrintAllTodos();
+
+            bool isInputPending = true;
+            List<TodoItem> selectedTodos = new();
+
+            Console.WriteLine("\nSelect the IDs you want to mark as completed, select 0 to stop.");
+            while (isInputPending)
+            {
+                int selectedTodoId = GetUserInput<int>("ID: ", isRequired: true);
+
+                if (selectedTodoId == 0)
+                {
+                    isInputPending = false;
+                    break;
+                }
+
+                var todo = _taskService.GetTodoItemById(selectedTodoId);
+
+                if (todo != null && _currentSelectedTodoList!.Id == todo.TodoListId)
+                {
+                    selectedTodos.Add(todo);
+                }
+                else
+                {
+                    ErrorMessage($"Todo ID \'{selectedTodoId}\' does not exist.");
+                }
+            }
+
+            foreach (var todo in selectedTodos)
+            {
+                _taskService.MarkTodoAsCompleted(todo);
+            }
+
+            SuccessfullMessage($"Succesfully mark as completed of the selected todo IDs!");
 
         }
 
