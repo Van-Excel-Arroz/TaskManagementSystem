@@ -92,7 +92,7 @@ namespace TaskManagementSystem
                             case "3": DeleteTodos(); break;
                             case "4": MarkTodosCompletion(); break;
                             case "5": UpdateTodo(); break;
-                            case "6": break;
+                            case "6": RenameTodoListTitle(); break;
                             case "7": break;
                             case "8":
                                 {
@@ -371,7 +371,14 @@ namespace TaskManagementSystem
             PrintTodoDetails(todo);
 
 
-            SuccessfullMessage($"Succesfully mark as completed of the selected todo IDs!");
+            SuccessfullMessage("Succesfully mark as completed of the selected todo IDs!");
+        }
+
+
+        private static void RenameTodoListTitle()
+        {
+            _currentSelectedTodoList!.Title = GetUserInput<string>("New Title: ", hasDefaultValue: true, defaultValue: _currentSelectedTodoList!.Title);
+            SuccessfullMessage("Successfully renamed todo list!");
         }
 
 
