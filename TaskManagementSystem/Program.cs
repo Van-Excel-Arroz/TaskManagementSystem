@@ -91,7 +91,7 @@ namespace TaskManagementSystem
                             case "2": PrintAllTodos(); break;
                             case "3": DeleteTodos(); break;
                             case "4": MarkTodosCompletion(); break;
-                            case "5": break;
+                            case "5": UpdateTodo(); break;
                             case "6": break;
                             case "7": break;
                             case "8":
@@ -163,6 +163,18 @@ namespace TaskManagementSystem
 
                 }
             }
+        }
+
+        private static void PrintTodoDetails(TodoItem todo)
+        {
+            const int padding = -12;
+            Console.WriteLine($"{"ID",padding}: {todo.Id}");
+            Console.WriteLine($"{"Title",padding}: {todo.Title}");
+            Console.WriteLine($"{"Description",padding}: {todo.Description}");
+            Console.WriteLine($"{"Completed",padding}: {todo.IsCompleted}");
+            Console.WriteLine($"{"Due Date",padding}: {todo.DueDate?.ToString() ?? "N/A"}");
+            Console.WriteLine($"{"Priority",padding}: {todo.Priority}");
+            Console.WriteLine($"{"Todo List ID",padding}: {todo.TodoListId}");
         }
 
         private static void SignUp()
@@ -351,10 +363,13 @@ namespace TaskManagementSystem
             Console.WriteLine("\nSelect the ID you want to update, you can leave it empty if you don't want to update it.");
             TodoItem todo = GetUserInput<TodoItem>("ID: ", isRequired: true, isTodoId: true);
 
-            string title = GetUserInput<string>("Title: ", hasDefaultValue: true, defaultValue: todo.Title);
-            string description = GetUserInput<string>("Description: ", hasDefaultValue: true, defaultValue: todo.Description);
-            DateTime dueDate = GetUserInput<DateTime>($"Due Date ({_dueDateFormat}): ", hasDefaultValue: true, defaultValue: todo.DueDate ?? DateTime.MinValue);
-            PriorityLevel priority = GetUserInput<PriorityLevel>("Priority (): ", hasDefaultValue: true, defaultValue: todo.Priority);
+            todo.Title = GetUserInput<string>("Title: ", hasDefaultValue: true, defaultValue: todo.Title);
+            todo.Description = GetUserInput<string>("Description: ", hasDefaultValue: true, defaultValue: todo.Description);
+            todo.DueDate = GetUserInput<DateTime>($"Due Date ({_dueDateFormat}): ", hasDefaultValue: true, defaultValue: todo.DueDate ?? DateTime.MinValue, isDateTime: true);
+            todo.Priority = GetUserInput<PriorityLevel>($"Priority {_priorityLevels}: ", hasDefaultValue: true, defaultValue: todo.Priority, isPriorityLevel: true);
+
+            PrintTodoDetails(todo);
+
 
             SuccessfullMessage($"Succesfully mark as completed of the selected todo IDs!");
         }
@@ -369,9 +384,15 @@ namespace TaskManagementSystem
                 Console.Write(prompt);
                 string userInput = Console.ReadLine()?.Trim() ?? string.Empty;
 
+                if (isRequired && userInput.Length == 0)
+                {
+                    ErrorMessage("You can't leave this field empty.");
+                    continue;
+                }
+
                 if (hasDefaultValue && userInput == string.Empty)
                 {
-                    if (defaultValue != null || defaultValue != DateTime.MinValue)
+                    if (defaultValue != null)
                     {
                         return defaultValue;
                     }
@@ -379,14 +400,6 @@ namespace TaskManagementSystem
                     {
                         ErrorMessage("No default value provided!");
                     }
-
-                }
-                else
-
-                if (isRequired && userInput.Length == 0)
-                {
-                    ErrorMessage("You can't leave this field empty.");
-                    continue;
                 }
 
 
@@ -422,8 +435,18 @@ namespace TaskManagementSystem
                 {
                     if (userInput.Length == 0)
                     {
-                        return (T)(object)DateTime.MinValue;
+                        if (hasDefaultValue && defaultValue != null)
+                        {
+                            return (T)(object)defaultValue;
+                        }
+                        else
+                        {
+                            return (T)(object)DateTime.MinValue;
+
+                        }
+
                     }
+
                     if (DateTime.TryParseExact(userInput, _dueDateFormat, null, DateTimeStyles.None, out DateTime validDate))
                     {
                         return (T)(object)validDate;
@@ -448,6 +471,7 @@ namespace TaskManagementSystem
                     }
 
                 }
+
                 isInputPending = false;
                 return (T)(object)userInput;
 
