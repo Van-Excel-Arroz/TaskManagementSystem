@@ -37,6 +37,16 @@ namespace TaskManagementSystem.Service
             _todoItemRepository.Remove(id);
         }
 
+        public void DeleteTodoList(int id)
+        {
+            _todolistRepository.Remove(id);
+            var todoIdsToDelete = GetAllTodoItems(id).Select(t => t.Id).ToList();
+            foreach (int todoId in todoIdsToDelete)
+            {
+                _todoItemRepository.Remove(todoId);
+            }
+        }
+
         public void MarkTodoAsCompleted(TodoItem todo)
         {
             todo.IsCompleted = true;

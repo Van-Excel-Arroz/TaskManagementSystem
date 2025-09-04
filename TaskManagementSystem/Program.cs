@@ -93,13 +93,14 @@ namespace TaskManagementSystem
                             case "4": MarkTodosCompletion(); break;
                             case "5": UpdateTodo(); break;
                             case "6": RenameTodoListTitle(); break;
-                            case "7": break;
+                            case "7": DeleteTodoList(); break;
                             case "8":
                                 {
                                     _isTodoListMenuRunning = false;
                                     _currentSelectedTodoList = null;
                                     break;
                                 }
+                            default: ErrorMessage(); break;
                         }
                         PauseAndClearConsole();
                     }
@@ -381,8 +382,23 @@ namespace TaskManagementSystem
             SuccessfullMessage("Successfully renamed todo list!");
         }
 
+        private static void DeleteTodoList()
+        {
+            string choice = GetUserInput<string>($"Are you sure you want to delete \'{_currentSelectedTodoList?.Title}\' [Y/N]: ", stringOptions: new[] { "Y", "N" });
+            if (choice == "Y")
+            {
+                _isTodoListMenuRunning = false;
+                _taskService.DeleteTodoList(_currentSelectedTodoList!.Id);
+                SuccessfullMessage("Successfully deleted todo list!");
+            }
+            else
+            {
+                return;
+            }
+        }
 
-        private static T GetUserInput<T>(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false, bool isTodoId = false, bool hasDefaultValue = false, T? defaultValue = default(T))
+
+        private static T GetUserInput<T>(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false, bool isTodoId = false, bool hasDefaultValue = false, T? defaultValue = default(T), params string[] stringOptions)
         {
             bool isInputPending = true;
 
@@ -474,6 +490,22 @@ namespace TaskManagementSystem
                     }
                     {
                         ErrorMessage("Invalid input, please select the exact priority.");
+                        continue;
+                    }
+
+                }
+
+                if (stringOptions.Any())
+                {
+                    string? selectedOption = stringOptions.FirstOrDefault(opt => opt == userInput);
+
+                    if (selectedOption != null)
+                    {
+                        return (T)(object)selectedOption;
+                    }
+                    else
+                    {
+                        ErrorMessage();
                         continue;
                     }
 
