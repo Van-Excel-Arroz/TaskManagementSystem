@@ -12,6 +12,18 @@ namespace TaskManagementSystem.Utilities
         private const int PriorityWidth = 10;
         private const int CompletedWidth = 10;
 
+        public static void PrintTodoDetails(TodoItem todo)
+        {
+            const int padding = -12;
+            Console.WriteLine($"{"ID",padding}: {todo.Id}");
+            Console.WriteLine($"{"Title",padding}: {todo.Title}");
+            Console.WriteLine($"{"Description",padding}: {todo.Description}");
+            Console.WriteLine($"{"Completed",padding}: {todo.IsCompleted}");
+            Console.WriteLine($"{"Due Date",padding}: {todo.DueDate?.ToString() ?? "N/A"}");
+            Console.WriteLine($"{"Priority",padding}: {todo.Priority}");
+            Console.WriteLine($"{"Todo List ID",padding}: {todo.TodoListId}");
+        }
+
         public static void PauseAndClearConsole()
         {
             Console.WriteLine("\nPress any key to continue...");

@@ -185,17 +185,7 @@ namespace TaskManagementSystem
             }
         }
 
-        private static void PrintTodoDetails(TodoItem todo)
-        {
-            const int padding = -12;
-            Console.WriteLine($"{"ID",padding}: {todo.Id}");
-            Console.WriteLine($"{"Title",padding}: {todo.Title}");
-            Console.WriteLine($"{"Description",padding}: {todo.Description}");
-            Console.WriteLine($"{"Completed",padding}: {todo.IsCompleted}");
-            Console.WriteLine($"{"Due Date",padding}: {todo.DueDate?.ToString() ?? "N/A"}");
-            Console.WriteLine($"{"Priority",padding}: {todo.Priority}");
-            Console.WriteLine($"{"Todo List ID",padding}: {todo.TodoListId}");
-        }
+
 
         private static void SignUp()
         {
