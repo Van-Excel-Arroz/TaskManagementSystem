@@ -21,7 +21,7 @@ namespace TaskManagementSystem
         private static User? _currentUser;
         private static TodoList? _currentSelectedTodoList;
         private static string _dueDateStringFormat = "yyyy-MM-dd hh:mm tt";
-        private static string _priorityLevels = "(None, Low, Medium, High)";
+        private static string _priorityLevels = "[1]None - [2]Low - [3]Medium - [4]High)";
 
         static Program()
         {
@@ -31,9 +31,9 @@ namespace TaskManagementSystem
 
             _taskService = new TaskService(userRepository, todolistRepository, todoItemRepository);
 
-            //DataSeeder.Initialize(_taskService);
-            //var user = _taskService.AuthenticateUser("van", "lol");
-            //_currentUser = user;
+            DataSeeder.Initialize(_taskService);
+            var user = _taskService.AuthenticateUser("van", "lol");
+            _currentUser = user;
         }
 
 
@@ -41,7 +41,7 @@ namespace TaskManagementSystem
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Task Management System\n");
-            AppState currentState = AppState.Authentication;
+            AppState currentState = AppState.MainMenu;
 
             while (currentState != AppState.Exiting)
             {
@@ -355,13 +355,27 @@ namespace TaskManagementSystem
 
         private static void RenameTodoListTitle()
         {
-            _currentSelectedTodoList!.Title = GetUserInput<string>("New Title: ", hasDefaultValue: true, defaultValue: _currentSelectedTodoList!.Title);
+            if (_currentSelectedTodoList is null)
+            {
+                ConsoleUI.ErrorMessage("There is no todo list currently selected");
+                ConsoleUI.PauseAndClearConsole();
+                return;
+            }
+
+            _currentSelectedTodoList.Title = GetUserInput<string>("New Title: ", hasDefaultValue: true, defaultValue: _currentSelectedTodoList.Title);
             ConsoleUI.SuccessfullMessage("Successfully renamed todo list!");
         }
 
         private static bool DeleteTodoList()
         {
-            string choice = GetUserInput<string>($"Are you sure you want to delete \'{_currentSelectedTodoList?.Title}\' [Y/N]: ", stringOptions: new[] { "Y", "N" });
+            if (_currentSelectedTodoList is null)
+            {
+                ConsoleUI.ErrorMessage("There is no todo list currently selected");
+                ConsoleUI.PauseAndClearConsole();
+                return false;
+            }
+
+            string choice = GetUserInput<string>($"Are you sure you want to delete \'{_currentSelectedTodoList.Title}\' [Y/N]: ", stringOptions: new[] { "Y", "N" });
             if (choice == "Y")
             {
                 ConsoleUI.SuccessfullMessage("Successfully deleted todo list!");
