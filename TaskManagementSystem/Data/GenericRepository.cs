@@ -19,9 +19,8 @@ namespace TaskManagementSystem.Data
 
         public void Remove(int id)
         {
-            if (DoesIdExist(id))
+            if (_itemDictionary.TryGetValue(id, out T? item))
             {
-                var item = _itemDictionary[id];
                 _items.Remove(item);
                 _itemDictionary.Remove(id);
             }
@@ -30,9 +29,10 @@ namespace TaskManagementSystem.Data
         public void Update(T entity)
         {
 
-            if (DoesIdExist(entity.Id))
+            if (_itemDictionary.TryGetValue(entity.Id, out T? existingItem))
             {
-                var itemIndex = _items.FindIndex(item => item.Id == entity.Id);
+
+                var itemIndex = _items.IndexOf(existingItem);
 
                 if (itemIndex != -1)
                 {
@@ -44,22 +44,13 @@ namespace TaskManagementSystem.Data
 
         public T? GetById(int id)
         {
-
-            if (DoesIdExist(id))
-            {
-                return _itemDictionary[id];
-            }
-            return null;
+            _itemDictionary.TryGetValue(id, out T? item);
+            return item;
         }
 
         public IReadOnlyList<T> GetAll()
         {
             return _items.AsReadOnly();
-        }
-
-        public bool DoesIdExist(int id)
-        {
-            return _itemDictionary.ContainsKey(id);
         }
     }
 }

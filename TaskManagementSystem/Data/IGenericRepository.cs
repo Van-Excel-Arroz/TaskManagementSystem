@@ -14,7 +14,6 @@ namespace TaskManagementSystem.Data
 
         public IReadOnlyList<T> GetAll();
 
-        public bool DoesIdExist(int id);
 
     }
 }
