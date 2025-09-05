@@ -76,7 +76,7 @@ namespace TaskManagementSystem
                 switch (choice)
                 {
                     case "1": AddTodo(); break;
-                    case "2": PrintAllTodos(); break;
+                    case "2": PrintAllTodos(out bool isTodosEmpty); break;
                     case "3": DeleteTodos(); break;
                     case "4": MarkTodosCompletion(); break;
                     case "5": UpdateTodo(); break;
@@ -165,27 +165,31 @@ namespace TaskManagementSystem
             }
         }
 
-        private static void PrintAllTodos()
+        private static void PrintAllTodos(out bool isTodosEmpty)
         {
-            var todos = _taskService.GetAllTodoItems(_currentSelectedTodoList!.Id);
+            isTodosEmpty = false;
+            if (_currentSelectedTodoList is null)
+            {
+                ConsoleUI.ErrorMessage("There is no todo list currently selected");
+                ConsoleUI.PauseAndClearConsole();
+                return;
+            }
+
+            var todos = _taskService.GetAllTodoItems(_currentSelectedTodoList.Id);
             if (!todos.Any())
             {
                 ConsoleUI.EmptyMessage("\nNo todos in memory.");
+                isTodosEmpty = true;
             }
             else
             {
                 ConsoleUI.PrintTodoTableHeader();
-
                 foreach (var todo in todos)
                 {
-
                     ConsoleUI.PrintTodoRow(todo, _dueDateStringFormat);
-
                 }
             }
         }
-
-
 
         private static void SignUp()
         {
@@ -260,7 +264,8 @@ namespace TaskManagementSystem
 
         private static void DeleteTodos()
         {
-            PrintAllTodos();
+            PrintAllTodos(out bool isTodosEmpty);
+            if (isTodosEmpty) return;
 
             bool isInputPending = true;
             List<int> selectedTodoIds = new();
@@ -283,22 +288,18 @@ namespace TaskManagementSystem
                     ConsoleUI.ErrorMessage($"Todo ID \'{selectedTodoId}\' does not exist.");
                 }
             }
-
             foreach (var todoId in selectedTodoIds)
             {
                 _taskService.DeleteTodoItem(todoId);
             }
-
             ConsoleUI.SuccessfullMessage($"Succesfully deleted todo IDs!\n");
             ConsoleUI.PauseAndClearConsole();
-            PrintAllTodos();
-            // this will print the updated list of todos after deletion
-
         }
 
         private static void MarkTodosCompletion()
         {
-            PrintAllTodos();
+            PrintAllTodos(out bool isTodosEmpty);
+            if (isTodosEmpty) return;
 
             bool isInputPending = true;
             List<TodoItem> selectedTodos = new();
@@ -334,7 +335,8 @@ namespace TaskManagementSystem
 
         private static void UpdateTodo()
         {
-            PrintAllTodos();
+            PrintAllTodos(out bool isTodosEmpty);
+            if (isTodosEmpty) return;
 
             Console.WriteLine("\nSelect the ID you want to update, you can leave it empty if you don't want to update it.");
             TodoItem todo = GetUserInput<TodoItem>("ID: ", isRequired: true, isTodoId: true);
@@ -344,7 +346,7 @@ namespace TaskManagementSystem
             todo.DueDate = GetUserInput<DateTime>($"Due Date ({_dueDateStringFormat}): ", hasDefaultValue: true, defaultValue: todo.DueDate ?? DateTime.MinValue, isDateTime: true);
             todo.Priority = GetUserInput<PriorityLevel>($"Priority {_priorityLevels}: ", hasDefaultValue: true, defaultValue: todo.Priority, isPriorityLevel: true);
 
-            PrintTodoDetails(todo);
+            ConsoleUI.PrintTodoDetails(todo);
 
 
             ConsoleUI.SuccessfullMessage("Succesfully mark as completed of the selected todo IDs!");
@@ -371,7 +373,6 @@ namespace TaskManagementSystem
                 return false;
             }
         }
-
 
         private static T GetUserInput<T>(string prompt, bool isRequired = false, bool isDateTime = false, bool isPriorityLevel = false, bool isTodoId = false, bool hasDefaultValue = false, T? defaultValue = default(T), params string[] stringOptions)
         {
