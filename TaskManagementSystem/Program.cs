@@ -2,6 +2,8 @@
 using TaskManagementSystem.Data;
 using TaskManagementSystem.Models;
 using TaskManagementSystem.Service;
+using TaskManagementSystem.Utilities;
+
 
 namespace TaskManagementSystem
 {
@@ -14,15 +16,9 @@ namespace TaskManagementSystem
         private static bool _isAuthMenuRunning = false;
         private static bool _isMainMenuRunning = true;
         private static bool _isTodoListMenuRunning = false;
-        private static string _dueDateFormat = "yyyy-MM-dd hh:mm tt";
+        private static string _dueDateStringFormat = "yyyy-MM-dd hh:mm tt";
         private static string _priorityLevels = "(None, Low, Medium, High)";
 
-        private const int IdWidth = 4;
-        private const int TitleWidth = 30;
-        private const int DescriptionWidth = 50;
-        private const int DueDateWidth = 22;
-        private const int PriorityWidth = 10;
-        private const int CompletedWidth = 10;
 
         static Program()
         {
@@ -45,7 +41,7 @@ namespace TaskManagementSystem
 
                 while (_isAuthMenuRunning)
                 {
-                    DisplayAuthMenu();
+                    ConsoleUI.DisplayAuthMenu();
                     string authMenuChoice = GetUserInput<string>("\nEnter: ");
 
                     switch (authMenuChoice)
@@ -54,14 +50,14 @@ namespace TaskManagementSystem
                         case "2": Login(); break;
                         case "3": _isAuthMenuRunning = false; break;
                         case "4": PrintAllUsers(); break;
-                        default: ErrorMessage(); break;
+                        default: ConsoleUI.ErrorMessage(); break;
                     }
-                    PauseAndClearConsole();
+                    ConsoleUI.PauseAndClearConsole();
                 }
 
                 while (_isMainMenuRunning)
                 {
-                    DisplayMainMenu();
+                    ConsoleUI.DisplayMainMenu();
                     string mainMenuChoice = GetUserInput<string>("\nEnter: ");
 
                     switch (mainMenuChoice)
@@ -74,15 +70,16 @@ namespace TaskManagementSystem
                                 _isAuthMenuRunning = true;
                                 break;
                             }
-                        default: ErrorMessage(); break;
+                        default: ConsoleUI.ErrorMessage(); break;
                     }
-                    PauseAndClearConsole();
+                    ConsoleUI.PauseAndClearConsole();
+
 
 
                     // this would run if a todolist is selected in PrintAllTodoLists() function
                     while (_isTodoListMenuRunning)
                     {
-                        DisplayTodoListMenu();
+                        ConsoleUI.DisplayTodoListMenu(_currentSelectedTodoList!.Title);
                         string todoListMenuChoice = GetUserInput<string>("\nEnter: ");
 
                         switch (todoListMenuChoice)
@@ -100,9 +97,9 @@ namespace TaskManagementSystem
                                     _currentSelectedTodoList = null;
                                     break;
                                 }
-                            default: ErrorMessage(); break;
+                            default: ConsoleUI.ErrorMessage(); break;
                         }
-                        PauseAndClearConsole();
+                        ConsoleUI.PauseAndClearConsole();
                     }
 
                 }
@@ -115,7 +112,7 @@ namespace TaskManagementSystem
             var users = _taskService.GetAllUsers();
             if (!users.Any())
             {
-                EmptyMessage("\nNo users in memory.");
+                ConsoleUI.EmptyMessage("\nNo users in memory.");
             }
             else
             {
@@ -131,7 +128,7 @@ namespace TaskManagementSystem
             var todolists = _taskService.GetAllTodoLists();
             if (!todolists.Any())
             {
-                EmptyMessage("\nNo todolists in memory.");
+                ConsoleUI.EmptyMessage("\nNo todolists in memory.");
             }
             else
             {
@@ -151,16 +148,16 @@ namespace TaskManagementSystem
             var todos = _taskService.GetAllTodoItems(_currentSelectedTodoList!.Id);
             if (!todos.Any())
             {
-                EmptyMessage("\nNo todos in memory.");
+                ConsoleUI.EmptyMessage("\nNo todos in memory.");
             }
             else
             {
-                PrintTodoTableHeader();
+                ConsoleUI.PrintTodoTableHeader();
 
                 foreach (var todo in todos)
                 {
 
-                    PrintTodoRow(todo);
+                    ConsoleUI.PrintTodoRow(todo, _dueDateStringFormat);
 
                 }
             }
@@ -186,7 +183,7 @@ namespace TaskManagementSystem
 
             _currentUser = new User { Username = username, Password = password };
             _taskService.CreateUser(_currentUser);
-            SuccessfullMessage("\nSuccessfully created an account!");
+            ConsoleUI.SuccessfullMessage("\nSuccessfully created an account!");
 
         }
 
@@ -202,49 +199,16 @@ namespace TaskManagementSystem
                 _currentUser = existingUser;
                 _isAuthMenuRunning = false;
                 _isMainMenuRunning = true;
-                SuccessfullMessage($"\nLogin Successfully, Welcome {_currentUser.Username}!");
+                ConsoleUI.SuccessfullMessage($"\nLogin Successfully, Welcome {_currentUser.Username}!");
 
             }
             else
             {
-                ErrorMessage("Incorrect username or password. Please try again.");
+                ConsoleUI.ErrorMessage("Incorrect username or password. Please try again.");
             }
         }
 
-        private static void PauseAndClearConsole()
-        {
-            Console.WriteLine("\nPress any key to continue...");
-            Console.ReadKey();
-            Console.Clear();
-        }
 
-        private static void DisplayMainMenu()
-        {
-            Console.WriteLine("[1] Create a todo list");
-            Console.WriteLine("[2] Display all todo lists");
-            Console.WriteLine("[3] Logout");
-        }
-
-        private static void DisplayAuthMenu()
-        {
-            Console.WriteLine("[1] Sign Up");
-            Console.WriteLine("[2] Log In");
-            Console.WriteLine("[3] Exit");
-            Console.WriteLine("[4] See all users");
-        }
-
-        private static void DisplayTodoListMenu()
-        {
-            Console.WriteLine($"=== Todo List \"{_currentSelectedTodoList?.Title}\" ===\n");
-            Console.WriteLine("[1] Create a todo");
-            Console.WriteLine("[2] Display all todos");
-            Console.WriteLine("[3] Delete todos");
-            Console.WriteLine("[4] Mark todos as completed");
-            Console.WriteLine("[5] Update a todo");
-            Console.WriteLine("[6] Rename list");
-            Console.WriteLine("[7] Delete entire list");
-            Console.WriteLine("[8] Back");
-        }
 
         private static void AddTodoList()
         {
@@ -258,7 +222,7 @@ namespace TaskManagementSystem
             string title = GetUserInput<string>("Title: ", isRequired: true);
             var newTodoList = new TodoList { Title = title, UserId = _currentUser.Id };
             _taskService.CreateTodoList(newTodoList);
-            SuccessfullMessage($"\nSuccessfully created a todolist \"{title}\"!");
+            ConsoleUI.SuccessfullMessage($"\nSuccessfully created a todolist \"{title}\"!");
         }
 
         private static void AddTodo()
@@ -266,7 +230,7 @@ namespace TaskManagementSystem
             Console.WriteLine("\n=== Add Todo ===");
             string title = GetUserInput<string>("Title: ", isRequired: true);
             string description = GetUserInput<string>("Description: ");
-            DateTime dueDate = GetUserInput<DateTime>($"Due Date ({_dueDateFormat}): ", isDateTime: true);
+            DateTime dueDate = GetUserInput<DateTime>($"Due Date ({_dueDateStringFormat}): ", isDateTime: true);
             PriorityLevel priorityLevel = GetUserInput<PriorityLevel>($"Priority {_priorityLevels}: ", isRequired: true, isPriorityLevel: true);
             DateTime? parsedDueDate = dueDate == DateTime.MinValue ? null : dueDate;
 
@@ -280,7 +244,7 @@ namespace TaskManagementSystem
                 TodoListId = _currentSelectedTodoList!.Id
             };
             _taskService.CreateTodoItem(newTodo);
-            SuccessfullMessage("Successfully created a todo!");
+            ConsoleUI.SuccessfullMessage("Successfully created a todo!");
         }
 
         private static void DeleteTodos()
@@ -305,7 +269,7 @@ namespace TaskManagementSystem
                 }
                 else
                 {
-                    ErrorMessage($"Todo ID \'{selectedTodoId}\' does not exist.");
+                    ConsoleUI.ErrorMessage($"Todo ID \'{selectedTodoId}\' does not exist.");
                 }
             }
 
@@ -314,8 +278,8 @@ namespace TaskManagementSystem
                 _taskService.DeleteTodoItem(todoId);
             }
 
-            SuccessfullMessage($"Succesfully deleted todo IDs!\n");
-            PauseAndClearConsole();
+            ConsoleUI.SuccessfullMessage($"Succesfully deleted todo IDs!\n");
+            ConsoleUI.PauseAndClearConsole();
             PrintAllTodos();
             // this will print the updated list of todos after deletion
 
@@ -344,7 +308,7 @@ namespace TaskManagementSystem
                 }
                 else
                 {
-                    ErrorMessage($"Todo ID \'{selectedTodoId}\' does not exist.");
+                    ConsoleUI.ErrorMessage($"Todo ID \'{selectedTodoId}\' does not exist.");
                 }
             }
 
@@ -353,7 +317,7 @@ namespace TaskManagementSystem
                 _taskService.MarkTodoAsCompleted(todo);
             }
 
-            SuccessfullMessage($"Succesfully mark as completed of the selected todo IDs!");
+            ConsoleUI.SuccessfullMessage($"Succesfully mark as completed of the selected todo IDs!");
 
         }
 
@@ -366,20 +330,20 @@ namespace TaskManagementSystem
 
             todo.Title = GetUserInput<string>("Title: ", hasDefaultValue: true, defaultValue: todo.Title);
             todo.Description = GetUserInput<string>("Description: ", hasDefaultValue: true, defaultValue: todo.Description);
-            todo.DueDate = GetUserInput<DateTime>($"Due Date ({_dueDateFormat}): ", hasDefaultValue: true, defaultValue: todo.DueDate ?? DateTime.MinValue, isDateTime: true);
+            todo.DueDate = GetUserInput<DateTime>($"Due Date ({_dueDateStringFormat}): ", hasDefaultValue: true, defaultValue: todo.DueDate ?? DateTime.MinValue, isDateTime: true);
             todo.Priority = GetUserInput<PriorityLevel>($"Priority {_priorityLevels}: ", hasDefaultValue: true, defaultValue: todo.Priority, isPriorityLevel: true);
 
             PrintTodoDetails(todo);
 
 
-            SuccessfullMessage("Succesfully mark as completed of the selected todo IDs!");
+            ConsoleUI.SuccessfullMessage("Succesfully mark as completed of the selected todo IDs!");
         }
 
 
         private static void RenameTodoListTitle()
         {
             _currentSelectedTodoList!.Title = GetUserInput<string>("New Title: ", hasDefaultValue: true, defaultValue: _currentSelectedTodoList!.Title);
-            SuccessfullMessage("Successfully renamed todo list!");
+            ConsoleUI.SuccessfullMessage("Successfully renamed todo list!");
         }
 
         private static void DeleteTodoList()
@@ -389,7 +353,7 @@ namespace TaskManagementSystem
             {
                 _isTodoListMenuRunning = false;
                 _taskService.DeleteTodoList(_currentSelectedTodoList!.Id);
-                SuccessfullMessage("Successfully deleted todo list!");
+                ConsoleUI.SuccessfullMessage("Successfully deleted todo list!");
             }
             else
             {
@@ -409,7 +373,7 @@ namespace TaskManagementSystem
 
                 if (isRequired && userInput.Length == 0)
                 {
-                    ErrorMessage("You can't leave this field empty.");
+                    ConsoleUI.ErrorMessage("You can't leave this field empty.");
                     continue;
                 }
 
@@ -421,7 +385,7 @@ namespace TaskManagementSystem
                     }
                     else
                     {
-                        ErrorMessage("No default value provided!");
+                        ConsoleUI.ErrorMessage("No default value provided!");
                     }
                 }
 
@@ -437,7 +401,7 @@ namespace TaskManagementSystem
 
                             if (todo == null || _currentSelectedTodoList!.Id != todo.TodoListId)
                             {
-                                ErrorMessage($"Todo ID \'{parsedIntInput}\' does not exist.");
+                                ConsoleUI.ErrorMessage($"Todo ID \'{parsedIntInput}\' does not exist.");
                                 continue;
                             }
                             else
@@ -449,7 +413,7 @@ namespace TaskManagementSystem
                     }
                     else
                     {
-                        ErrorMessage("Invalid input, please only enter numbers only.");
+                        ConsoleUI.ErrorMessage("Invalid input, please only enter numbers only.");
                         continue;
                     }
                 }
@@ -470,13 +434,13 @@ namespace TaskManagementSystem
 
                     }
 
-                    if (DateTime.TryParseExact(userInput, _dueDateFormat, null, DateTimeStyles.None, out DateTime validDate))
+                    if (DateTime.TryParseExact(userInput, _dueDateStringFormat, null, DateTimeStyles.None, out DateTime validDate))
                     {
                         return (T)(object)validDate;
                     }
                     else
                     {
-                        ErrorMessage("Invalid date format, please try again.");
+                        ConsoleUI.ErrorMessage("Invalid date format, please try again.");
                         continue;
                     }
 
@@ -489,7 +453,7 @@ namespace TaskManagementSystem
                         return (T)(object)priority;
                     }
                     {
-                        ErrorMessage("Invalid input, please select the exact priority.");
+                        ConsoleUI.ErrorMessage("Invalid input, please select the exact priority.");
                         continue;
                     }
 
@@ -505,7 +469,7 @@ namespace TaskManagementSystem
                     }
                     else
                     {
-                        ErrorMessage();
+                        ConsoleUI.ErrorMessage();
                         continue;
                     }
 
@@ -518,42 +482,9 @@ namespace TaskManagementSystem
             return (T)(object)string.Empty;
         }
 
-        private static void PrintTodoTableHeader()
-        {
-            Console.WriteLine($"\n{"ID",-IdWidth} | {"Title",-TitleWidth} | {"Description",-DescriptionWidth} | {"Due Date",-DueDateWidth} | {"Priority",-PriorityWidth} | {"Completed",-CompletedWidth}");
-            Console.WriteLine($"{new string('-', IdWidth)}-+-{new string('-', TitleWidth)}-+-{new string('-', DescriptionWidth)}-+-{new string('-', DueDateWidth)}-+-{new string('-', PriorityWidth)}-+-{new string('-', CompletedWidth)}");
-        }
-
-        private static void PrintTodoRow(TodoItem todo)
-        {
-            string dueDate = todo.DueDate?.ToString(_dueDateFormat) ?? "N/A";
-            string isCompleted = todo.IsCompleted ? "[/] Yes" : "[X] No";
-            string truncatedDescription = todo.Description.Length > DescriptionWidth ? todo.Description.Substring(0, DescriptionWidth - 3) + "..." : todo.Description;
-
-            Console.WriteLine($"{todo.Id,-IdWidth} | {todo.Title,-TitleWidth} | {truncatedDescription,-DescriptionWidth} | {dueDate,-DueDateWidth} | {todo.Priority,-PriorityWidth} | {isCompleted,-CompletedWidth} | {todo.TodoListId}");
-        }
 
 
-        private static void ErrorMessage(string message = "Invalid option, please try again.")
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(message);
-            Console.ForegroundColor = ConsoleColor.White;
-        }
 
-        private static void SuccessfullMessage(string message)
-        {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(message);
-            Console.ForegroundColor = ConsoleColor.White;
-        }
-
-        private static void EmptyMessage(string message)
-        {
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine(message);
-            Console.ForegroundColor = ConsoleColor.White;
-        }
 
         private static void SeedData()
         {
