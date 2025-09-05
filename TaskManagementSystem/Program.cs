@@ -9,16 +9,19 @@ namespace TaskManagementSystem
 {
     class Program
     {
+        private enum AppState
+        {
+            Authentication,
+            MainMenu,
+            TodoListMenu,
+            Exiting
+        };
+
         private static readonly ITaskService _taskService;
         private static User? _currentUser;
         private static TodoList? _currentSelectedTodoList;
-        private static bool _isProgramRunning = true;
-        private static bool _isAuthMenuRunning = false;
-        private static bool _isMainMenuRunning = true;
-        private static bool _isTodoListMenuRunning = false;
         private static string _dueDateStringFormat = "yyyy-MM-dd hh:mm tt";
         private static string _priorityLevels = "(None, Low, Medium, High)";
-
 
         static Program()
         {
@@ -28,9 +31,9 @@ namespace TaskManagementSystem
 
             _taskService = new TaskService(userRepository, todolistRepository, todoItemRepository);
 
-            DataSeeder.Initialize(_taskService);
-            var user = _taskService.AuthenticateUser("van", "lol");
-            _currentUser = user;
+            //DataSeeder.Initialize(_taskService);
+            //var user = _taskService.AuthenticateUser("van", "lol");
+            //_currentUser = user;
         }
 
 
@@ -38,76 +41,90 @@ namespace TaskManagementSystem
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Task Management System\n");
+            AppState currentState = AppState.Authentication;
 
-            while (_isProgramRunning)
+            while (currentState != AppState.Exiting)
             {
-
-                while (_isAuthMenuRunning)
+                switch (currentState)
                 {
-                    ConsoleUI.DisplayAuthMenu();
-                    string authMenuChoice = GetUserInput<string>("\nEnter: ");
-
-                    switch (authMenuChoice)
-                    {
-                        case "1": SignUp(); break;
-                        case "2": Login(); break;
-                        case "3": _isAuthMenuRunning = false; break;
-                        case "4": PrintAllUsers(); break;
-                        default: ConsoleUI.ErrorMessage(); break;
-                    }
-                    ConsoleUI.PauseAndClearConsole();
-                }
-
-                while (_isMainMenuRunning)
-                {
-                    ConsoleUI.DisplayMainMenu();
-                    string mainMenuChoice = GetUserInput<string>("\nEnter: ");
-
-                    switch (mainMenuChoice)
-                    {
-                        case "1": AddTodoList(); break;
-                        case "2": PrintAllTodoLists(); break;
-                        case "3":
-                            {
-                                _isMainMenuRunning = false;
-                                _isAuthMenuRunning = true;
-                                break;
-                            }
-                        default: ConsoleUI.ErrorMessage(); break;
-                    }
-                    ConsoleUI.PauseAndClearConsole();
-
-
-
-                    // this would run if a todolist is selected in PrintAllTodoLists() function
-                    while (_isTodoListMenuRunning)
-                    {
-                        ConsoleUI.DisplayTodoListMenu(_currentSelectedTodoList!.Title);
-                        string todoListMenuChoice = GetUserInput<string>("\nEnter: ");
-
-                        switch (todoListMenuChoice)
-                        {
-                            case "1": AddTodo(); break;
-                            case "2": PrintAllTodos(); break;
-                            case "3": DeleteTodos(); break;
-                            case "4": MarkTodosCompletion(); break;
-                            case "5": UpdateTodo(); break;
-                            case "6": RenameTodoListTitle(); break;
-                            case "7": DeleteTodoList(); break;
-                            case "8":
-                                {
-                                    _isTodoListMenuRunning = false;
-                                    _currentSelectedTodoList = null;
-                                    break;
-                                }
-                            default: ConsoleUI.ErrorMessage(); break;
-                        }
-                        ConsoleUI.PauseAndClearConsole();
-                    }
-
+                    case AppState.Authentication:
+                        currentState = RunAuthMenu(); break;
+                    case AppState.MainMenu:
+                        currentState = RunMainMenu(); break;
+                    case AppState.TodoListMenu:
+                        currentState = RunTodoListMenu(); break;
                 }
             }
+        }
 
+
+        private static AppState RunTodoListMenu()
+        {
+            while (true)
+            {
+                if (_currentSelectedTodoList is null)
+                {
+                    ConsoleUI.ErrorMessage("There is no todo list currently selected");
+                    ConsoleUI.PauseAndClearConsole();
+
+                    return AppState.MainMenu;
+                }
+
+                ConsoleUI.DisplayTodoListMenu(_currentSelectedTodoList.Title);
+                string choice = GetUserInput<string>("\nEnter: ");
+
+                switch (choice)
+                {
+                    case "1": AddTodo(); break;
+                    case "2": PrintAllTodos(); break;
+                    case "3": DeleteTodos(); break;
+                    case "4": MarkTodosCompletion(); break;
+                    case "5": UpdateTodo(); break;
+                    case "6": RenameTodoListTitle(); break;
+                    case "7": if (DeleteTodoList()) return AppState.MainMenu; break;
+                    case "8": ConsoleUI.PauseAndClearConsole(); return AppState.MainMenu;
+                    default: ConsoleUI.ErrorMessage(); break;
+                }
+
+                ConsoleUI.PauseAndClearConsole();
+            }
+        }
+
+        private static AppState RunMainMenu()
+        {
+            while (true)
+            {
+                ConsoleUI.DisplayMainMenu();
+                string choice = GetUserInput<string>("\nEnter: ");
+
+                switch (choice)
+                {
+                    case "1": AddTodoList(); break;
+                    case "2": if (SetSelectedTodoList()) return AppState.TodoListMenu; break;
+                    case "3": ConsoleUI.PauseAndClearConsole(); return AppState.Authentication;
+                    default: ConsoleUI.ErrorMessage(); break;
+                }
+                ConsoleUI.PauseAndClearConsole();
+            }
+        }
+
+        private static AppState RunAuthMenu()
+        {
+            while (true)
+            {
+                ConsoleUI.DisplayAuthMenu();
+                string choice = GetUserInput<string>("\nEnter: ");
+
+                switch (choice)
+                {
+                    case "1": SignUp(); break;
+                    case "2": if (Login()) return AppState.MainMenu; break;
+                    case "3": return AppState.Exiting;
+                    case "4": PrintAllUsers(); break;
+                    default: ConsoleUI.ErrorMessage(); break;
+                }
+                ConsoleUI.PauseAndClearConsole();
+            }
         }
 
         private static void PrintAllUsers()
@@ -126,12 +143,13 @@ namespace TaskManagementSystem
             }
         }
 
-        private static void PrintAllTodoLists()
+        private static bool SetSelectedTodoList()
         {
             var todolists = _taskService.GetAllTodoLists();
             if (!todolists.Any())
             {
                 ConsoleUI.EmptyMessage("\nNo todolists in memory.");
+                return false;
             }
             else
             {
@@ -142,7 +160,8 @@ namespace TaskManagementSystem
 
                 int todoListId = GetUserInput<int>("\nSelect a todolist: ");
                 _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
-                _isTodoListMenuRunning = true;
+                ConsoleUI.PauseAndClearConsole();
+                return true;
             }
         }
 
@@ -190,7 +209,7 @@ namespace TaskManagementSystem
 
         }
 
-        private static void Login()
+        private static bool Login()
         {
             Console.WriteLine("\n=== Login ===");
             string username = GetUserInput<string>("Username: ", isRequired: true);
@@ -199,15 +218,14 @@ namespace TaskManagementSystem
             var existingUser = _taskService.AuthenticateUser(username, password);
             if (existingUser != null)
             {
-                _currentUser = existingUser;
-                _isAuthMenuRunning = false;
-                _isMainMenuRunning = true;
-                ConsoleUI.SuccessfullMessage($"\nLogin Successfully, Welcome {_currentUser.Username}!");
-
+                ConsoleUI.SuccessfullMessage($"\nLogin Successfully, Welcome {existingUser.Username}!");
+                ConsoleUI.PauseAndClearConsole();
+                return true;
             }
             else
             {
                 ConsoleUI.ErrorMessage("Incorrect username or password. Please try again.");
+                return false;
             }
         }
 
@@ -349,18 +367,18 @@ namespace TaskManagementSystem
             ConsoleUI.SuccessfullMessage("Successfully renamed todo list!");
         }
 
-        private static void DeleteTodoList()
+        private static bool DeleteTodoList()
         {
             string choice = GetUserInput<string>($"Are you sure you want to delete \'{_currentSelectedTodoList?.Title}\' [Y/N]: ", stringOptions: new[] { "Y", "N" });
             if (choice == "Y")
             {
-                _isTodoListMenuRunning = false;
-                _taskService.DeleteTodoList(_currentSelectedTodoList!.Id);
                 ConsoleUI.SuccessfullMessage("Successfully deleted todo list!");
+                _taskService.DeleteTodoList(_currentSelectedTodoList!.Id);
+                return true;
             }
             else
             {
-                return;
+                return false;
             }
         }
 
