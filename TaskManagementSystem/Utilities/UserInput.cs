@@ -11,12 +11,17 @@ namespace TaskManagementSystem.Utilities
             _taskService = taskService;
         }
 
-        private T GetInput<T>(string prompt, Func<string, (bool success, T value)> parser, bool isRequired = false, string errorMessage = "Invalid format.")
+        private T GetInput<T>(string prompt, Func<string, (bool success, T value)> parser, bool isRequired = false, T? defaultValue = default, string errorMessage = "Invalid format.")
         {
             while (true)
             {
                 Console.Write(prompt);
                 string userInput = Console.ReadLine()?.Trim() ?? string.Empty;
+
+                if (defaultValue != null && userInput.Length == 0)
+                {
+                    return defaultValue;
+                }
 
                 if (isRequired && userInput.Length == 0)
                 {
@@ -37,7 +42,7 @@ namespace TaskManagementSystem.Utilities
                 return (true, userInput);
             };
 
-            return GetInput<string>(prompt, stringParser, isRequired, errorMessage: "Invalid input, please only enter numbers.");
+            return GetInput<string>(prompt, stringParser, isRequired, defaultValue, errorMessage: "Invalid input, please only enter numbers.");
         }
 
         public int GetInt(string prompt, bool isRequired = false)
