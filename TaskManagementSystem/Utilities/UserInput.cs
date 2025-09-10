@@ -42,7 +42,7 @@ namespace TaskManagementSystem.Utilities
                 return (true, userInput);
             };
 
-            return GetInput<string>(prompt, stringParser, isRequired, defaultValue, errorMessage: "Invalid input, please only enter numbers.");
+            return GetInput(prompt, stringParser, isRequired, defaultValue, errorMessage: "Invalid input, please only enter numbers.");
         }
 
         public int GetInt(string prompt, bool isRequired = false)
@@ -53,7 +53,7 @@ namespace TaskManagementSystem.Utilities
                 return (success, result);
             };
 
-            return GetInput<int>(prompt, intParser, isRequired, errorMessage: "Invalid input, please only enter numbers.");
+            return GetInput(prompt, intParser, isRequired, errorMessage: "Invalid input, please only enter numbers.");
         }
     }
 }
