@@ -78,7 +78,7 @@ namespace TaskManagementSystem.Utilities
                 return (success, result);
             };
 
-            return GetInput<DateTime>(prompt, dateTimeParser, false, defaultValue, errorMessage: "Invalid date format, please try again.");
+            return GetInput(prompt, dateTimeParser, false, defaultValue, errorMessage: "Invalid date format, please try again.");
         }
 
         public PriorityLevel GetPriority(string prompt, bool isRequired = false, PriorityLevel? defaultValue = null)
