@@ -22,6 +22,7 @@ namespace TaskManagementSystem
         private static TodoList? _currentSelectedTodoList;
         private static string _dueDateStringFormat = "yyyy-MM-dd hh:mm tt";
         private static string _priorityLevels = "[1]None - [2]Low - [3]Medium - [4]High)";
+        private static UserInput _userInput;
 
         static Program()
         {
@@ -30,6 +31,9 @@ namespace TaskManagementSystem
             var todoItemRepository = new GenericRepository<TodoItem>();
 
             _taskService = new TaskService(userRepository, todolistRepository, todoItemRepository);
+
+            UserInput userInput = new(_taskService);
+            _userInput = userInput;
 
             DataSeeder.Initialize(_taskService);
             var user = _taskService.AuthenticateUser("van", "lol");
@@ -42,6 +46,7 @@ namespace TaskManagementSystem
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Task Management System\n");
             AppState currentState = AppState.MainMenu;
+
 
             while (currentState != AppState.Exiting)
             {
@@ -71,7 +76,7 @@ namespace TaskManagementSystem
                 }
 
                 ConsoleUI.DisplayTodoListMenu(_currentSelectedTodoList.Title);
-                string choice = GetUserInput<string>("\nEnter: ");
+                string choice = _userInput.GetString("\nEnter: ");
 
                 switch (choice)
                 {
@@ -95,7 +100,7 @@ namespace TaskManagementSystem
             while (true)
             {
                 ConsoleUI.DisplayMainMenu();
-                string choice = GetUserInput<string>("\nEnter: ");
+                string choice = _userInput.GetString("\nEnter: ");
 
                 switch (choice)
                 {
@@ -113,7 +118,7 @@ namespace TaskManagementSystem
             while (true)
             {
                 ConsoleUI.DisplayAuthMenu();
-                string choice = GetUserInput<string>("\nEnter: ");
+                string choice = _userInput.GetString("\nEnter: ");
 
                 switch (choice)
                 {
@@ -160,8 +165,18 @@ namespace TaskManagementSystem
 
                 int todoListId = GetUserInput<int>("\nSelect a todolist: ");
                 _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
-                ConsoleUI.PauseAndClearConsole();
-                return true;
+
+                if (_currentSelectedTodoList != null)
+                {
+                    ConsoleUI.PauseAndClearConsole();
+                    return true;
+                }
+                else
+                {
+                    ConsoleUI.ErrorMessage();
+                    return false;
+                }
+
             }
         }
 
