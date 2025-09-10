@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using TaskManagementSystem.Models;
 using TaskManagementSystem.Service;
 
 namespace TaskManagementSystem.Utilities
@@ -79,5 +80,17 @@ namespace TaskManagementSystem.Utilities
 
             return GetInput<DateTime>(prompt, dateTimeParser, false, defaultValue, errorMessage: "Invalid date format, please try again.");
         }
+
+        public PriorityLevel GetPriority(string prompt, bool isRequired = false, PriorityLevel? defaultValue = null)
+        {
+            var priorityParser = (string userInput) =>
+            {
+                bool success = Enum.TryParse(userInput, out PriorityLevel result);
+                return (success, result);
+            };
+
+            return GetInput(prompt, priorityParser, isRequired, errorMessage: "Invalid input, please select the exact priority.");
+        }
+
     }
 }
