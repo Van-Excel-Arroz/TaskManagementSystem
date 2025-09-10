@@ -31,7 +31,7 @@ namespace TaskManagementSystem.Utilities
             }
         }
 
-        public int GetIntInput(string prompt, bool isRequired = false)
+        public int GetInt(string prompt, bool isRequired = false, int? defaultValue = null)
         {
             var intParser = (string userInput) =>
             {
