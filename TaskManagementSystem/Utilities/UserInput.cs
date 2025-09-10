@@ -11,7 +11,7 @@ namespace TaskManagementSystem.Utilities
             _taskService = taskService;
         }
 
-        public T GetInput<T>(string prompt, Func<string, (bool success, T value)> parser, bool isRequired = false, string errorMessage = "Invalid format.")
+        private T GetInput<T>(string prompt, Func<string, (bool success, T value)> parser, bool isRequired = false, string errorMessage = "Invalid format.")
         {
             while (true)
             {
