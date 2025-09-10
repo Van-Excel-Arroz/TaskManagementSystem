@@ -25,13 +25,22 @@ namespace TaskManagementSystem.Utilities
                 }
 
                 var (success, value) = parser(userInput);
-
                 if (success) return value;
                 else ConsoleUI.ErrorMessage(errorMessage);
             }
         }
 
-        public int GetInt(string prompt, bool isRequired = false, int? defaultValue = null)
+        public string GetString(string prompt, bool isRequired = false, string? defaultValue = null)
+        {
+            var stringParser = (string userInput) =>
+            {
+                return (true, userInput);
+            };
+
+            return GetInput<string>(prompt, stringParser, isRequired, errorMessage: "Invalid input, please only enter numbers.");
+        }
+
+        public int GetInt(string prompt, bool isRequired = false)
         {
             var intParser = (string userInput) =>
             {
