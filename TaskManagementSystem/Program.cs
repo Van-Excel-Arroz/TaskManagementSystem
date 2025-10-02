@@ -22,14 +22,12 @@ namespace TaskManagementSystem
         private static TodoList? _currentSelectedTodoList;
         private static string _dueDateStringFormat = "yyyy-MM-dd hh:mm tt";
         private static string _priorityLevels = "[1]None - [2]Low - [3]Medium - [4]High)";
-        private static UserInput _userInput;
 
         static Program()
         {
             var userRepository = new GenericRepository<User>();
             var todolistRepository = new GenericRepository<TodoList>();
             var todoItemRepository = new GenericRepository<TodoItem>();
-            _userInput = new UserInput();
             _taskService = new TaskService(userRepository, todolistRepository, todoItemRepository);
 
             DataSeeder.Initialize(_taskService);
@@ -73,7 +71,7 @@ namespace TaskManagementSystem
                 }
 
                 ConsoleUI.DisplayTodoListMenu(_currentSelectedTodoList.Title);
-                string choice = _userInput.GetString("\nEnter: ");
+                string choice = UserInput.GetString("\nEnter: ");
 
                 switch (choice)
                 {
@@ -97,7 +95,7 @@ namespace TaskManagementSystem
             while (true)
             {
                 ConsoleUI.DisplayMainMenu();
-                string choice = _userInput.GetString("\nEnter: ");
+                string choice = UserInput.GetString("\nEnter: ");
 
                 switch (choice)
                 {
@@ -115,7 +113,7 @@ namespace TaskManagementSystem
             while (true)
             {
                 ConsoleUI.DisplayAuthMenu();
-                string choice = _userInput.GetString("\nEnter: ");
+                string choice = UserInput.GetString("\nEnter: ");
 
                 switch (choice)
                 {
@@ -161,7 +159,7 @@ namespace TaskManagementSystem
                 }
 
                 var validIds = todolists.Select(t => t.Id).ToList();
-                int todoListId = _userInput.GetInt("\nSelect a todolist: ", isRequired: false, validIds);
+                int todoListId = UserInput.GetInt("\nSelect a todolist: ", isRequired: false, validIds);
                 _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
 
                 if (_currentSelectedTodoList != null)

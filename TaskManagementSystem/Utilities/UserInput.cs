@@ -3,10 +3,10 @@ using TaskManagementSystem.Models;
 
 namespace TaskManagementSystem.Utilities
 {
-    public class UserInput
+    public static class UserInput
     {
 
-        private T GetInput<T>
+        private static T GetInput<T>
             (
             string prompt,
             Func<string, (bool success, T value)> parser,
@@ -53,7 +53,7 @@ namespace TaskManagementSystem.Utilities
             }
         }
 
-        public string GetString(string prompt, bool isRequired = false, string? defaultValue = null)
+        public static string GetString(string prompt, bool isRequired = false, string? defaultValue = null)
         {
             while (true)
             {
@@ -75,7 +75,7 @@ namespace TaskManagementSystem.Utilities
             }
         }
 
-        public int GetInt(string prompt, bool isRequired = false, ICollection<int>? options = null)
+        public static int GetInt(string prompt, bool isRequired = false, ICollection<int>? options = null)
         {
             var intParser = (string userInput) =>
             {
@@ -101,7 +101,7 @@ namespace TaskManagementSystem.Utilities
             }
         }
 
-        public DateTime GetDateTime(string prompt, string dateFormat, DateTime? defaultValue = null)
+        public static DateTime GetDateTime(string prompt, string dateFormat, DateTime? defaultValue = null)
         {
             var dateTimeParser = (string userInput) =>
             {
@@ -112,7 +112,7 @@ namespace TaskManagementSystem.Utilities
             return GetInput(prompt, dateTimeParser, validator: null, isRequired: false, defaultValue, parsingErrorMessage: "Invalid date format, please try again.");
         }
 
-        public PriorityLevel GetPriority(string prompt, bool isRequired = false, PriorityLevel? defaultValue = null)
+        public static PriorityLevel GetPriority(string prompt, bool isRequired = false, PriorityLevel? defaultValue = null)
         {
             var priorityParser = (string userInput) =>
             {
