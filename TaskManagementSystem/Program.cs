@@ -29,11 +29,8 @@ namespace TaskManagementSystem
             var userRepository = new GenericRepository<User>();
             var todolistRepository = new GenericRepository<TodoList>();
             var todoItemRepository = new GenericRepository<TodoItem>();
-
+            _userInput = new UserInput();
             _taskService = new TaskService(userRepository, todolistRepository, todoItemRepository);
-
-            UserInput userInput = new(_taskService);
-            _userInput = userInput;
 
             DataSeeder.Initialize(_taskService);
             var user = _taskService.AuthenticateUser("van", "lol");
@@ -163,7 +160,8 @@ namespace TaskManagementSystem
                     Console.WriteLine($"[{todolist.Id}] {todolist.Title}");
                 }
 
-                int todoListId = GetUserInput<int>("\nSelect a todolist: ");
+                var validIds = todolists.Select(t => t.Id).ToList();
+                int todoListId = _userInput.GetInt("\nSelect a todolist: ", isRequired: false, validIds);
                 _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
 
                 if (_currentSelectedTodoList != null)

@@ -1,39 +1,55 @@
 ﻿using System.Globalization;
 using TaskManagementSystem.Models;
-using TaskManagementSystem.Service;
 
 namespace TaskManagementSystem.Utilities
 {
     public class UserInput
     {
-        private readonly ITaskService _taskService;
 
-        public UserInput(ITaskService taskService)
-        {
-            _taskService = taskService;
-        }
-
-        private T GetInput<T>(string prompt, Func<string, (bool success, T value)> parser, bool isRequired = false, T? defaultValue = default, string errorMessage = "Invalid format.") where T : struct
+        private T GetInput<T>
+            (
+            string prompt,
+            Func<string, (bool success, T value)> parser,
+            Func<T, (bool success, string errorMessage)>? validator = null,
+            bool isRequired = false,
+            T? defaultValue = default,
+            string parsingErrorMessage = "Invalid format."
+            ) where T : struct
         {
             while (true)
             {
                 Console.Write(prompt);
                 string userInput = Console.ReadLine()?.Trim() ?? string.Empty;
 
-                if (defaultValue.HasValue && userInput.Length == 0)
+                if (!isRequired && string.IsNullOrEmpty(userInput) && defaultValue != null)
                 {
                     return defaultValue.Value;
                 }
 
-                if (isRequired && userInput.Length == 0)
+                if (isRequired && string.IsNullOrEmpty(userInput))
                 {
                     ConsoleUI.ErrorMessage("You can't leave this field empty.");
                     continue;
                 }
 
-                var (success, value) = parser(userInput);
-                if (success) return value;
-                else ConsoleUI.ErrorMessage(errorMessage);
+                var (parsedSuccess, parsedValue) = parser(userInput);
+
+                if (!parsedSuccess)
+                {
+                    ConsoleUI.ErrorMessage(parsingErrorMessage);
+                    continue;
+                }
+
+                if (validator != null)
+                {
+                    var (validationSuccess, validationErrorMessage) = validator(parsedValue);
+                    if (!validationSuccess)
+                    {
+                        ConsoleUI.ErrorMessage(validationErrorMessage);
+                        continue;
+                    }
+                }
+                return parsedValue;
             }
         }
 
@@ -59,7 +75,7 @@ namespace TaskManagementSystem.Utilities
             }
         }
 
-        public int GetInt(string prompt, bool isRequired = false)
+        public int GetInt(string prompt, bool isRequired = false, ICollection<int>? options = null)
         {
             var intParser = (string userInput) =>
             {
@@ -67,7 +83,22 @@ namespace TaskManagementSystem.Utilities
                 return (success, result);
             };
 
-            return GetInput(prompt, intParser, isRequired, errorMessage: "Invalid input, please only enter numbers.");
+
+            if (options != null && options.Any())
+            {
+                var intOptionsValidator = (int parsedValue) =>
+                {
+                    bool success = options.Contains(parsedValue);
+                    string errorMessage = success ? "" : "Please select only in the options";
+                    return (success, errorMessage);
+                };
+
+                return GetInput(prompt, intParser, validator: intOptionsValidator, isRequired, parsingErrorMessage: "Invalid input, please only enter numbers.");
+            }
+            else
+            {
+                return GetInput(prompt, intParser, validator: null, isRequired, parsingErrorMessage: "Invalid input, please only enter numbers.");
+            }
         }
 
         public DateTime GetDateTime(string prompt, string dateFormat, DateTime? defaultValue = null)
@@ -78,7 +109,7 @@ namespace TaskManagementSystem.Utilities
                 return (success, result);
             };
 
-            return GetInput(prompt, dateTimeParser, false, defaultValue, errorMessage: "Invalid date format, please try again.");
+            return GetInput(prompt, dateTimeParser, validator: null, isRequired: false, defaultValue, parsingErrorMessage: "Invalid date format, please try again.");
         }
 
         public PriorityLevel GetPriority(string prompt, bool isRequired = false, PriorityLevel? defaultValue = null)
@@ -89,7 +120,7 @@ namespace TaskManagementSystem.Utilities
                 return (success, result);
             };
 
-            return GetInput(prompt, priorityParser, isRequired, errorMessage: "Invalid input, please select the exact priority.");
+            return GetInput(prompt, priorityParser, validator: null, isRequired, parsingErrorMessage: "Invalid input, please select the exact priority.");
         }
 
     }
