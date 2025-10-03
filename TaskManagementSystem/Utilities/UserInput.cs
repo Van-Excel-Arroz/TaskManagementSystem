@@ -53,7 +53,7 @@ namespace TaskManagementSystem.Utilities
             }
         }
 
-        public static string GetString(string prompt, bool isRequired = false, string? defaultValue = null)
+        public static string GetString(string prompt, bool isRequired = false, string? defaultValue = null, ICollection<string>? options = null)
         {
             while (true)
             {
@@ -69,6 +69,19 @@ namespace TaskManagementSystem.Utilities
                 {
                     ConsoleUI.ErrorMessage("You can't leave this field empty.");
                     continue;
+                }
+
+                if (options != null && options.Any())
+                {
+                    bool success = options.Any(opt => opt.Equals(userInput, StringComparison.OrdinalIgnoreCase));
+
+                    if (!success)
+                    {
+                        ConsoleUI.ErrorMessage("Please select only in the options");
+                        continue;
+                    }
+
+
                 }
 
                 return userInput;
@@ -105,6 +118,11 @@ namespace TaskManagementSystem.Utilities
         {
             var dateTimeParser = (string userInput) =>
             {
+                if (string.IsNullOrEmpty(userInput))
+                {
+                    return (true, DateTime.MinValue);
+                }
+
                 bool success = DateTime.TryParseExact(userInput, dateFormat, null, DateTimeStyles.None, out DateTime result);
                 return (success, result);
             };
@@ -116,11 +134,18 @@ namespace TaskManagementSystem.Utilities
         {
             var priorityParser = (string userInput) =>
             {
-                bool success = Enum.TryParse(userInput, out PriorityLevel result);
+                bool success = Enum.TryParse(userInput, true, out PriorityLevel result);
                 return (success, result);
             };
 
-            return GetInput(prompt, priorityParser, validator: null, isRequired, parsingErrorMessage: "Invalid input, please select the exact priority.");
+            var priortyValidator = (PriorityLevel parsedValue) =>
+            {
+                bool success = Enum.IsDefined(typeof(PriorityLevel), parsedValue);
+                string errorMessage = success ? "" : $"'{parsedValue}' is not a valid priority level";
+                return (success, errorMessage);
+            };
+
+            return GetInput(prompt, priorityParser, priortyValidator, isRequired, parsingErrorMessage: "Invalid input, please select the exact priority.");
         }
 
     }

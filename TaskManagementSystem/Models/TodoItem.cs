@@ -5,10 +5,10 @@ namespace TaskManagementSystem.Models
 {
     public enum PriorityLevel
     {
-        None,
-        Low,
-        Medium,
-        High
+        None = 1,
+        Low = 2,
+        Medium = 3,
+        High = 4
     }
 
     public class TodoItem : IEntity
