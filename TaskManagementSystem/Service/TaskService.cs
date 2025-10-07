@@ -50,6 +50,7 @@ namespace TaskManagementSystem.Service
         public void MarkTodoAsCompleted(TodoItem todo)
         {
             todo.IsCompleted = true;
+            _todoItemRepository.Update(todo);
         }
 
         public User? AuthenticateUser(string username, string password)
