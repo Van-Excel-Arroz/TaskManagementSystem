@@ -82,13 +82,5 @@ namespace TaskManagementSystem.Service
         {
             return _todoItemRepository.GetById(id);
         }
-
-        public void PrintUserDetails(User user)
-        {
-            Console.WriteLine($"User ID: {user.Id}");
-            Console.WriteLine($"Username: {user.Username}");
-            Console.WriteLine($"Password: {user.Password}");
-        }
-
     }
 }

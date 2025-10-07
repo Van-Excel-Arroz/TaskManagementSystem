@@ -14,7 +14,6 @@ namespace TaskManagementSystem.Service
         IReadOnlyList<User> GetAllUsers();
         IReadOnlyList<TodoList> GetAllTodoLists();
         IEnumerable<TodoItem> GetAllTodoItems(int todoListId);
-        void PrintUserDetails(User user);
         TodoList? GetTodoListById(int id);
         TodoItem? GetTodoItemById(int id);
 

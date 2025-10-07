@@ -80,6 +80,13 @@ namespace TaskManagementSystem.Utilities
             Console.ForegroundColor = ConsoleColor.White;
         }
 
+        public static void PrintUserDetails(User user)
+        {
+            Console.WriteLine($"User ID: {user.Id}");
+            Console.WriteLine($"Username: {user.Username}");
+            Console.WriteLine($"Password: {user.Password}");
+        }
+
         public static void PrintTodoTableHeader()
         {
             Console.WriteLine($"\n{"ID",-IdWidth} | {"Title",-TitleWidth} | {"Description",-DescriptionWidth} | {"Due Date",-DueDateWidth} | {"Priority",-PriorityWidth} | {"Completed",-CompletedWidth}");
