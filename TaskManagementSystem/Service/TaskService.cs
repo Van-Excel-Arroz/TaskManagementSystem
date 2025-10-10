@@ -50,6 +50,7 @@ namespace TaskManagementSystem.Service
         public void MarkTodoAsCompleted(TodoItem todo)
         {
             todo.IsCompleted = true;
+            _todoItemRepository.Update(todo);
         }
 
         public User? AuthenticateUser(string username, string password)
@@ -82,13 +83,5 @@ namespace TaskManagementSystem.Service
         {
             return _todoItemRepository.GetById(id);
         }
-
-        public void PrintUserDetails(User user)
-        {
-            Console.WriteLine($"User ID: {user.Id}");
-            Console.WriteLine($"Username: {user.Username}");
-            Console.WriteLine($"Password: {user.Password}");
-        }
-
     }
 }

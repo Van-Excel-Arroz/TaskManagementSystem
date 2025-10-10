@@ -137,7 +137,7 @@ namespace TaskManagementSystem
             {
                 foreach (var user in users)
                 {
-                    _taskService.PrintUserDetails(user);
+                    ConsoleUI.PrintUserDetails(user);
                 }
             }
         }
