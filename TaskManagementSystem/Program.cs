@@ -1,4 +1,5 @@
-﻿using TaskManagementSystem.Data;
+﻿using TaskManagementSystem.Controllers;
+using TaskManagementSystem.Data;
 using TaskManagementSystem.Models;
 using TaskManagementSystem.Service;
 using TaskManagementSystem.Utilities;
@@ -8,14 +9,6 @@ namespace TaskManagementSystem
 {
     class Program
     {
-        private enum AppState
-        {
-            Authentication,
-            MainMenu,
-            TodoListMenu,
-            Exiting
-        };
-
         private static readonly ITaskService _taskService;
         private static User? _currentUser;
         private static TodoList? _currentSelectedTodoList;
@@ -30,8 +23,8 @@ namespace TaskManagementSystem
             _taskService = new TaskService(userRepository, todolistRepository, todoItemRepository);
 
             DataSeeder.Initialize(_taskService);
-            var user = _taskService.AuthenticateUser("van", "lol");
-            _currentUser = user;
+            //var user = _taskService.AuthenticateUser("van", "lol");
+            //_currentUser = user;
         }
 
 
@@ -39,17 +32,26 @@ namespace TaskManagementSystem
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Task Management System\n");
-            AppState currentState = AppState.MainMenu;
+            AppState currentState = AppState.Authentication;
 
+            var authenticationController = new AuthenticationController(_taskService);
 
             while (currentState != AppState.Exiting)
             {
                 switch (currentState)
                 {
                     case AppState.Authentication:
-                        currentState = RunAuthMenu(); break;
+                        currentState = authenticationController.Run(ref _currentUser);
+                        break;
                     case AppState.MainMenu:
-                        currentState = RunMainMenu(); break;
+                        if (_currentUser == null)
+                        {
+                            ConsoleUI.ErrorMessage("Authentication is required to access Main Menu!");
+                            currentState = AppState.Authentication;
+                            break;
+                        }
+                        var mainMenuController = new MainMenuController(_taskService, _currentUser);
+                        currentState = mainMenuController.Run(ref _currentSelectedTodoList); break;
                     case AppState.TodoListMenu:
                         currentState = RunTodoListMenu(); break;
                 }
@@ -89,92 +91,6 @@ namespace TaskManagementSystem
             }
         }
 
-        private static AppState RunMainMenu()
-        {
-            while (true)
-            {
-                ConsoleUI.DisplayMainMenu();
-                string choice = UserInput.GetString("\nEnter: ");
-
-                switch (choice)
-                {
-                    case "1": AddTodoList(); break;
-                    case "2": if (SetSelectedTodoList()) return AppState.TodoListMenu; break;
-                    case "3": ConsoleUI.PauseAndClearConsole(); return AppState.Authentication;
-                    default: ConsoleUI.ErrorMessage(); break;
-                }
-                ConsoleUI.PauseAndClearConsole();
-            }
-        }
-
-        private static AppState RunAuthMenu()
-        {
-            while (true)
-            {
-                ConsoleUI.DisplayAuthMenu();
-                string choice = UserInput.GetString("\nEnter: ");
-
-                switch (choice)
-                {
-                    case "1": SignUp(); break;
-                    case "2": if (Login()) return AppState.MainMenu; break;
-                    case "3": return AppState.Exiting;
-                    case "4": PrintAllUsers(); break;
-                    default: ConsoleUI.ErrorMessage(); break;
-                }
-                ConsoleUI.PauseAndClearConsole();
-            }
-        }
-
-        private static void PrintAllUsers()
-        {
-            var users = _taskService.GetAllUsers();
-            if (!users.Any())
-            {
-                ConsoleUI.EmptyMessage("\nNo users in memory.");
-            }
-            else
-            {
-                foreach (var user in users)
-                {
-                    ConsoleUI.PrintUserDetails(user);
-                }
-            }
-        }
-
-        private static bool SetSelectedTodoList()
-        {
-            var todolists = _taskService.GetAllTodoLists();
-            if (!todolists.Any())
-            {
-                ConsoleUI.EmptyMessage("\nNo todolists in memory.");
-                return false;
-            }
-            else
-            {
-                foreach (var todolist in todolists)
-                {
-                    Console.WriteLine($"[{todolist.Id}] {todolist.Title}");
-                }
-
-                var validIds = todolists.Select(t => t.Id).ToList();
-                int todoListId = UserInput.GetInt("\nSelect a todolist: ", isRequired: false, validIds);
-                _currentSelectedTodoList = _taskService.GetTodoListById(todoListId);
-
-                if (_currentSelectedTodoList != null)
-                {
-                    ConsoleUI.PauseAndClearConsole();
-                    return true;
-                }
-                else
-                {
-                    ConsoleUI.ErrorMessage();
-                    return false;
-                }
-
-            }
-        }
-
         private static void PrintAllTodos(out bool isTodosEmpty)
         {
             isTodosEmpty = false;
@@ -201,55 +117,6 @@ namespace TaskManagementSystem
                     ConsoleUI.PrintTodoRow(todo, _dueDateStringFormat);
                 }
             }
-        }
-
-        private static void SignUp()
-        {
-            Console.WriteLine("\n=== Sign Up ===");
-            string username = UserInput.GetString("Username: ", isRequired: true);
-            string password = UserInput.GetString("Password: ", isRequired: true);
-
-            _currentUser = new User { Username = username, Password = password };
-            _taskService.CreateUser(_currentUser);
-            ConsoleUI.SuccessfullMessage("\nSuccessfully created an account!");
-
-        }
-
-        private static bool Login()
-        {
-            Console.WriteLine("\n=== Login ===");
-            string username = UserInput.GetString("Username: ", isRequired: true);
-            string password = UserInput.GetString("Password: ", isRequired: true);
-
-            var existingUser = _taskService.AuthenticateUser(username, password);
-            if (existingUser != null)
-            {
-                ConsoleUI.SuccessfullMessage($"\nLogin Successfully, Welcome {existingUser.Username}!");
-                ConsoleUI.PauseAndClearConsole();
-                return true;
-            }
-            else
-            {
-                ConsoleUI.ErrorMessage("Incorrect username or password. Please try again.");
-                return false;
-            }
-        }
-
-
-
-        private static void AddTodoList()
-        {
-            if (_currentUser == null)
-            {
-                Console.WriteLine("User must be authenticated.");
-                return;
-            }
-
-            Console.WriteLine("\n=== Create a TodoList ===");
-            string title = UserInput.GetString("Title: ", isRequired: true);
-            var newTodoList = new TodoList { Title = title, UserId = _currentUser.Id };
-            _taskService.CreateTodoList(newTodoList);
-            ConsoleUI.SuccessfullMessage($"\nSuccessfully created a todolist \"{title}\"!");
         }
 
         private static void AddTodo()
