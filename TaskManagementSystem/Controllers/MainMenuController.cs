@@ -8,12 +8,12 @@ namespace TaskManagementSystem.Controllers
     {
 
         private readonly ITaskService _taskService;
-        private User? _currentUser;
+        private readonly User _currentUser;
 
         public MainMenuController(ITaskService taskService, User currentUser)
         {
             _taskService = taskService;
-            _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser), $"{nameof(currentUser)} can not be null!");
+            _currentUser = currentUser;
         }
 
         public AppState Run(ref TodoList? currentSelectedTodoList)
@@ -38,7 +38,7 @@ namespace TaskManagementSystem.Controllers
         {
             Console.WriteLine("\n=== Create a TodoList ===");
             string title = UserInput.GetString("Title: ", isRequired: true);
-            var newTodoList = new TodoList { Title = title, UserId = _currentUser.Id };
+            var newTodoList = new TodoList { Title = title, UserId = _currentUser!.Id };
             _taskService.CreateTodoList(newTodoList);
             ConsoleUI.SuccessfullMessage($"\nSuccessfully created a todolist \"{title}\"!");
         }
