@@ -197,6 +197,7 @@ namespace TaskManagementSystem.Controllers
             }
 
             _currentSelectedTodoList.Title = UserInput.GetString("New Title: ", isRequired: false, defaultValue: _currentSelectedTodoList.Title);
+            _taskService.UpdateTodoList(_currentSelectedTodoList);
             ConsoleUI.SuccessfullMessage("Successfully renamed todo list!");
         }
 

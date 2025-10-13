@@ -6,6 +6,7 @@ namespace TaskManagementSystem.Service
     {
         void CreateUser(User newUser);
         void CreateTodoList(TodoList newTodoList);
+        public void UpdateTodoList(TodoList todoList);
         void CreateTodoItem(TodoItem newTodo);
         void DeleteTodoItem(int id);
         void DeleteTodoList(int id);

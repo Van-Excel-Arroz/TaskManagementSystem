@@ -27,6 +27,11 @@ namespace TaskManagementSystem.Service
             _todolistRepository.Add(newTodoList);
         }
 
+        public void UpdateTodoList(TodoList todoList)
+        {
+            _todolistRepository.Update(todoList);
+        }
+
         public void CreateTodoItem(TodoItem newTodo)
         {
             _todoItemRepository.Add(newTodo);
