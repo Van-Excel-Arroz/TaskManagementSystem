@@ -186,11 +186,13 @@ namespace TaskManagementSystem.Controllers
 
         public bool DeleteTodoList()
         {
-            string choice = UserInput.GetString($"Are you sure you want to delete \'{_currentSelectedTodoList.Title}\' [Y/N]: ", isRequired: true, options: new string[] { "Y", "N" });
-            if (choice == "Y")
+            string userInput = UserInput.GetString($"Are you sure you want to delete \'{_currentSelectedTodoList.Title}\' [Y/N]: ", isRequired: true, options: new string[] { "Y", "N" });
+            string choice = userInput.ToLower();
+            if (choice == "y")
             {
                 ConsoleUI.SuccessfullMessage("Successfully deleted todo list!");
                 _taskService.DeleteTodoList(_currentSelectedTodoList.Id);
+                ConsoleUI.PauseAndClearConsole();
                 return true;
             }
             else
