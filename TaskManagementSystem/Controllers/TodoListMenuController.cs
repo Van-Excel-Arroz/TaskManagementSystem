@@ -48,15 +48,7 @@ namespace TaskManagementSystem.Controllers
         public void PrintAllTodos(out bool isTodosEmpty)
         {
             isTodosEmpty = false;
-
-            if (_currentSelectedTodoList is null)
-            {
-                ConsoleUI.ErrorMessage("There is no todo list currently selected");
-                ConsoleUI.PauseAndClearConsole();
-                return;
-            }
             var todos = _taskService.GetAllTodoItems(_currentSelectedTodoList.Id);
-
 
             if (!todos.Any())
             {
@@ -89,7 +81,7 @@ namespace TaskManagementSystem.Controllers
                 IsCompleted = false,
                 DueDate = parsedDueDate,
                 Priority = priorityLevel,
-                TodoListId = _currentSelectedTodoList!.Id
+                TodoListId = _currentSelectedTodoList.Id
             };
             _taskService.CreateTodoItem(newTodo);
             ConsoleUI.SuccessfullMessage("Successfully created a todo!");
@@ -112,7 +104,7 @@ namespace TaskManagementSystem.Controllers
 
                 var todo = _taskService.GetTodoItemById(selectedTodoId);
 
-                if (todo != null && _currentSelectedTodoList!.Id == todo.TodoListId)
+                if (todo != null && _currentSelectedTodoList.Id == todo.TodoListId)
                 {
                     selectedTodoIds.Add(selectedTodoId);
                 }
@@ -147,7 +139,7 @@ namespace TaskManagementSystem.Controllers
 
                 var todo = _taskService.GetTodoItemById(selectedTodoId);
 
-                if (todo != null && _currentSelectedTodoList!.Id == todo.TodoListId)
+                if (todo != null && _currentSelectedTodoList.Id == todo.TodoListId)
                 {
                     selectedTodos.Add(todo);
                 }
@@ -173,7 +165,7 @@ namespace TaskManagementSystem.Controllers
 
             Console.WriteLine("\nSelect the ID you want to update, you can leave some fields empty if you don't want to update it.");
 
-            var availableTodoIds = _taskService.GetAllTodoItems(_currentSelectedTodoList!.Id).Select(t => t.Id).ToList();
+            var availableTodoIds = _taskService.GetAllTodoItems(_currentSelectedTodoList.Id).Select(t => t.Id).ToList();
             int todoId = UserInput.GetInt("ID: ", isRequired: true, availableTodoIds);
             TodoItem todo = _taskService.GetTodoItemById(todoId)!;
 
@@ -189,13 +181,6 @@ namespace TaskManagementSystem.Controllers
 
         public void RenameTodoListTitle()
         {
-            if (_currentSelectedTodoList is null)
-            {
-                ConsoleUI.ErrorMessage("There is no todo list currently selected");
-                ConsoleUI.PauseAndClearConsole();
-                return;
-            }
-
             _currentSelectedTodoList.Title = UserInput.GetString("New Title: ", isRequired: false, defaultValue: _currentSelectedTodoList.Title);
             _taskService.UpdateTodoList(_currentSelectedTodoList);
             ConsoleUI.SuccessfullMessage("Successfully renamed todo list!");
@@ -203,18 +188,11 @@ namespace TaskManagementSystem.Controllers
 
         public bool DeleteTodoList()
         {
-            if (_currentSelectedTodoList is null)
-            {
-                ConsoleUI.ErrorMessage("There is no todo list currently selected");
-                ConsoleUI.PauseAndClearConsole();
-                return false;
-            }
-
             string choice = UserInput.GetString($"Are you sure you want to delete \'{_currentSelectedTodoList.Title}\' [Y/N]: ", isRequired: true, options: new string[] { "Y", "N" });
             if (choice == "Y")
             {
                 ConsoleUI.SuccessfullMessage("Successfully deleted todo list!");
-                _taskService.DeleteTodoList(_currentSelectedTodoList!.Id);
+                _taskService.DeleteTodoList(_currentSelectedTodoList.Id);
                 return true;
             }
             else
