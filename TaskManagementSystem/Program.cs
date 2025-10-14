@@ -63,7 +63,7 @@ namespace TaskManagementSystem
                             break;
                         }
 
-                        var todoListMenuController = new TodoListMenuController(_taskService, _currentUser, _currentSelectedTodoList);
+                        var todoListMenuController = new TodoListMenuController(_taskService, _currentSelectedTodoList);
                         currentState = todoListMenuController.Run();
                         break;
                 }

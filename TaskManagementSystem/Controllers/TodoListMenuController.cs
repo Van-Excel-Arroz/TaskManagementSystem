@@ -7,16 +7,14 @@ namespace TaskManagementSystem.Controllers
     public class TodoListMenuController
     {
         private readonly ITaskService _taskService;
-        private readonly User _currentUser;
         private readonly TodoList _currentSelectedTodoList;
         private string _dueDateStringFormat = "yyyy-MM-dd hh:mm tt";
         private string _priorityLevels = "([1]None - [2]Low - [3]Medium - [4]High)";
 
 
-        public TodoListMenuController(ITaskService taskService, User currentUser, TodoList currentSelectedTodoList)
+        public TodoListMenuController(ITaskService taskService, TodoList currentSelectedTodoList)
         {
             _taskService = taskService;
-            _currentUser = currentUser;
             _currentSelectedTodoList = currentSelectedTodoList;
         }
 
