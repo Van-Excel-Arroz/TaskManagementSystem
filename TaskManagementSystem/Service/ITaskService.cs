@@ -13,7 +13,7 @@ namespace TaskManagementSystem.Service
         void MarkTodoAsCompleted(TodoItem todo);
         User? AuthenticateUser(string username, string password);
         IReadOnlyList<User> GetAllUsers();
-        IReadOnlyList<TodoList> GetAllTodoLists();
+        IReadOnlyList<TodoList> GetAllTodoLists(User user);
         IEnumerable<TodoItem> GetAllTodoItems(int todoListId);
         TodoList? GetTodoListById(int id);
         TodoItem? GetTodoItemById(int id);

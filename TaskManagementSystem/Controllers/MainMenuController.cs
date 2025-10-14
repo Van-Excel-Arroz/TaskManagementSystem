@@ -45,7 +45,7 @@ namespace TaskManagementSystem.Controllers
 
         public bool SetSelectedTodoList(ref TodoList? currentSelectedTodoList)
         {
-            var todolists = _taskService.GetAllTodoLists();
+            var todolists = _taskService.GetAllTodoLists(_currentUser);
             if (!todolists.Any())
             {
                 ConsoleUI.EmptyMessage("\nNo todolists in memory.");
